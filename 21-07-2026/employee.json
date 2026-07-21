@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "name": "Hari",
+    "age": 22,
+    "department": "CSE",
+    "salary": 50000
+  },
+  {
+    "id": 2,
+    "name": "Priya",
+    "age": 21,
+    "department": "ECE",
+    "salary": 60000
+  },
+  {
+    "id": 3,
+    "name": "Rahul",
+    "age": 24,
+    "department": "CSE",
+    "salary": 70000
+  },
+  {
+    "id": 4,
+    "name": "raj",
+    "age": 23,
+    "department": "IT",
+    "salary": 45000
+  },
+  {
+    "id": 4,
+    "name": "raj",
+    "age": 23,
+    "department": "IT",
+    "salary": 45000
+  },
+  {
+    "id": 4,
+    "name": "raj",
+    "age": 23,
+    "department": "IT",
+    "salary": 45000
+  }
+]

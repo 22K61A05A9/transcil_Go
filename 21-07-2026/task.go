@@ -1,20 +1,10 @@
 // Assignment: 5 Query Questions 
-// 4. Cross-field Logic:
-//  Identify all is_international shipments where weight_kg > 20 
-//  and cost_breakdown.insurance == 0. 
-//  These represent heavy international shipments with no insurance
-//   — flag them as a "risk report."
-// 5. Multi-level Grouping: 
-// Build a summary object grouping shipments by destination.country,
-//  and within each country, count shipments per status. 
-//        Output should look like: 
-// { "USA": { "Delivered": 3, "Delayed": 1 }, 
-// "India": { "In Transit": 2 } }
 package main
 import ("fmt"
 "encoding/json"
 "os"
 "sort"
+"time"
 ) 
 type Response struct {
 	Metadata  Metadata   `json:"metadata"`
@@ -40,27 +30,23 @@ type Shipment struct{
 	EstimatedDelivery  string          `json:"estimated_delivery"`
 	TrackingEvents     []TrackingEvent `json:"tracking_events"`
 }
-
 type Origin struct {
 	Country      string `json:"country"`
 	City         string `json:"city"`
 	WarehouseCode string `json:"warehouse_code"`
 }
-
 type Destination struct {
 	Country    string `json:"country"`
 	City       string `json:"city"`
 	AddressLine string `json:"address_line"`
 	PostalCode string `json:"postal_code"`
 }
-
 type Item struct {
 	SKU       string  `json:"sku"`
 	Name      string  `json:"name"`
 	Quantity  int     `json:"quantity"`
 	UnitPrice float64 `json:"unit_price"`
 }
-
 type CostBreakdown struct {
 	BaseRate       float64 `json:"base_rate"`
 	FuelSurcharge  float64 `json:"fuel_surcharge"`
@@ -69,7 +55,6 @@ type CostBreakdown struct {
 	Total          float64 `json:"total"`
 	Currency       string  `json:"currency"`
 }
-
 type TrackingEvent struct {
 	Timestamp    string `json:"timestamp"`
 	Location     string `json:"location"`
@@ -124,9 +109,53 @@ func main(){
 	//  For each shipment, find the number of hours between the first 
 	//  and last event in tracking_events.
 	//   Return the shipment with the longest total transit time.
-	// diff:=0
-	// for _,event:=range response.Shipments{
-    //     diff=event.TrackingEvents[len(event.TrackingEvents)-1]-event.TrackingEvents[0]
-	// } 
-	// fmt.Println(diff)
+	var maxHours float64
+	var maxShipment Shipment
+	for _,event:=range response.Shipments{
+        first:=event.TrackingEvents[0]
+		last:=event.TrackingEvents[len(event.TrackingEvents)-1]
+		t1, _ := time.Parse(time.RFC3339, first.Timestamp)
+    	t2, _ := time.Parse(time.RFC3339, last.Timestamp)
+    	diff := t2.Sub(t1).Hours()
+		if diff>maxHours{
+			maxHours=diff
+			maxShipment=event
+		}
+	} 
+	fmt.Println("Shipment id :",maxShipment.Shipment_id," Max Hours : ",maxHours)
+	fmt.Printf("Transit time: %.2f hours\n",maxHours)
+	// 4. Cross-field Logic:
+	// Identify all is_international shipments where weight_kg > 20
+	// and cost_breakdown.insurance == 0.
+	// These represent heavy international shipments with no insurance
+	//  — flag them as a "risk report."
+	fmt.Println("risk report")
+	// var risk_report []Shipment
+	for _,r:=range response.Shipments{
+		if r.IsInternational && r.WeightKg>20 && r.CostBreakdown.Insurance==0{
+			// risk_report=append(risk_report, r)
+			fmt.Println(r)
+		} 
+	}
+    // 5. Multi-level Grouping: 
+	// Build a summary object grouping shipments by destination.country,
+	//  and within each country, count shipments per status. 
+	//        Output should look like: 
+	// { "USA": { "Delivered": 3, "Delayed": 1 }, 
+	// "India": { "In Transit": 2 } }
+    summary:=make(map[string]map[string]int)
+	for _,s:=range response.Shipments{
+		country:=s.Destination.Country
+		status:=s.Status
+		if summary[country]==nil{
+			summary[country]=make(map[string]int)
+		}
+		summary[country][status]++
+	}
+	res,err:=json.MarshalIndent(summary,""," ")
+	if err!=nil{
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(res))
 }

@@ -1,0 +1,1775 @@
+{
+  "metadata": {
+    "generated_on": "2026-07-20T00:00:00Z",
+    "record_count": 25,
+    "schema_version": "1.2"
+  },
+  "shipments": [
+    {
+      "shipment_id": "SHP-100001",
+      "order_id": "ORD-202664987",
+      "carrier": "DHL Express",
+      "status": "Delivered",
+      "is_international": true,
+      "origin": {
+        "country": "Brazil",
+        "city": "Sao Paulo",
+        "warehouse_code": "WH-SAO-8"
+      },
+      "destination": {
+        "country": "USA",
+        "city": "New York",
+        "address_line": "604 5th Avenue",
+        "postal_code": "10851"
+      },
+      "items": [
+        {
+          "sku": "SKU-1004",
+          "name": "Mechanical Keyboard",
+          "quantity": 1,
+          "unit_price": 58.9
+        },
+        {
+          "sku": "SKU-1010",
+          "name": "Desk Lamp",
+          "quantity": 5,
+          "unit_price": 19.45
+        },
+        {
+          "sku": "SKU-1003",
+          "name": "Laptop Stand",
+          "quantity": 1,
+          "unit_price": 24.0
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 77.0,
+        "fuel_surcharge": 4.09,
+        "insurance": 3.6,
+        "tax": 6.78,
+        "total": 91.47,
+        "currency": "USD"
+      },
+      "weight_kg": 31.71,
+      "created_at": "2026-07-10T23:58:08Z",
+      "estimated_delivery": "2026-07-15T23:58:08Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-11T03:58:08Z",
+          "location": "Mumbai, India",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-11T12:58:08Z",
+          "location": "Dubai, UAE",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-12T09:58:08Z",
+          "location": "Chicago, USA",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-07-13T04:58:08Z",
+          "location": "Mumbai, India",
+          "status_update": "Arrived at Destination Facility"
+        },
+        {
+          "timestamp": "2026-07-14T04:58:08Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Delivered"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100002",
+      "order_id": "ORD-202659615",
+      "carrier": "FedEx",
+      "status": "Delayed",
+      "is_international": true,
+      "origin": {
+        "country": "Singapore",
+        "city": "Singapore",
+        "warehouse_code": "WH-SIN-9"
+      },
+      "destination": {
+        "country": "China",
+        "city": "Shenzhen",
+        "address_line": "301 Harbor Blvd",
+        "postal_code": "57400"
+      },
+      "items": [
+        {
+          "sku": "SKU-1004",
+          "name": "Mechanical Keyboard",
+          "quantity": 1,
+          "unit_price": 58.9
+        },
+        {
+          "sku": "SKU-1006",
+          "name": "27in Monitor",
+          "quantity": 1,
+          "unit_price": 189.99
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 54.89,
+        "fuel_surcharge": 4.71,
+        "insurance": 4.98,
+        "tax": 5.17,
+        "total": 69.75,
+        "currency": "USD"
+      },
+      "weight_kg": 43.8,
+      "created_at": "2026-06-18T11:44:36Z",
+      "estimated_delivery": "2026-06-30T11:44:36Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-19T00:44:36Z",
+          "location": "Sydney, Australia",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-19T10:44:36Z",
+          "location": "Chicago, USA",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-20T11:44:36Z",
+          "location": "Osaka, Japan",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-21T06:44:36Z",
+          "location": "New York, USA",
+          "status_update": "In Transit - Delay Reported"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100003",
+      "order_id": "ORD-202689840",
+      "carrier": "DHL Express",
+      "status": "Delivered",
+      "is_international": true,
+      "origin": {
+        "country": "India",
+        "city": "Mumbai",
+        "warehouse_code": "WH-MUM-9"
+      },
+      "destination": {
+        "country": "USA",
+        "city": "New York",
+        "address_line": "747 Market Rd",
+        "postal_code": "31417"
+      },
+      "items": [
+        {
+          "sku": "SKU-1005",
+          "name": "Bluetooth Speaker",
+          "quantity": 2,
+          "unit_price": 33.2
+        },
+        {
+          "sku": "SKU-1002",
+          "name": "USB-C Cable",
+          "quantity": 1,
+          "unit_price": 6.75
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 54.91,
+        "fuel_surcharge": 5.24,
+        "insurance": 0.0,
+        "tax": 4.81,
+        "total": 64.96,
+        "currency": "USD"
+      },
+      "weight_kg": 29.34,
+      "created_at": "2026-07-07T02:25:39Z",
+      "estimated_delivery": "2026-07-17T02:25:39Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-08T06:25:39Z",
+          "location": "London, UK",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-08T13:25:39Z",
+          "location": "London, UK",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-09T02:25:39Z",
+          "location": "Mumbai, India",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-07-10T01:25:39Z",
+          "location": "Hamburg, Germany",
+          "status_update": "Arrived at Destination Facility"
+        },
+        {
+          "timestamp": "2026-07-11T01:25:39Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Delivered"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100004",
+      "order_id": "ORD-202644718",
+      "carrier": "DHL Express",
+      "status": "Out for Delivery",
+      "is_international": true,
+      "origin": {
+        "country": "China",
+        "city": "Shenzhen",
+        "warehouse_code": "WH-SHE-4"
+      },
+      "destination": {
+        "country": "Germany",
+        "city": "Hamburg",
+        "address_line": "763 Harbor Blvd",
+        "postal_code": "80644"
+      },
+      "items": [
+        {
+          "sku": "SKU-1006",
+          "name": "27in Monitor",
+          "quantity": 2,
+          "unit_price": 189.99
+        },
+        {
+          "sku": "SKU-1001",
+          "name": "Wireless Mouse",
+          "quantity": 1,
+          "unit_price": 12.5
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 99.53,
+        "fuel_surcharge": 8.97,
+        "insurance": 7.85,
+        "tax": 9.31,
+        "total": 125.66,
+        "currency": "USD"
+      },
+      "weight_kg": 20.92,
+      "created_at": "2026-07-08T09:46:00Z",
+      "estimated_delivery": "2026-07-15T09:46:00Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-08T13:46:00Z",
+          "location": "Mumbai, India",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-09T09:46:00Z",
+          "location": "Singapore, Singapore",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-09T21:46:00Z",
+          "location": "Mumbai, India",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-07-10T19:46:00Z",
+          "location": "Osaka, Japan",
+          "status_update": "Arrived at Destination Facility"
+        },
+        {
+          "timestamp": "2026-07-11T09:46:00Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Out for Delivery"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100005",
+      "order_id": "ORD-202611504",
+      "carrier": "FedEx",
+      "status": "Returned",
+      "is_international": true,
+      "origin": {
+        "country": "Singapore",
+        "city": "Singapore",
+        "warehouse_code": "WH-SIN-9"
+      },
+      "destination": {
+        "country": "Australia",
+        "city": "Sydney",
+        "address_line": "769 5th Avenue",
+        "postal_code": "94012"
+      },
+      "items": [
+        {
+          "sku": "SKU-1006",
+          "name": "27in Monitor",
+          "quantity": 4,
+          "unit_price": 189.99
+        },
+        {
+          "sku": "SKU-1004",
+          "name": "Mechanical Keyboard",
+          "quantity": 1,
+          "unit_price": 58.9
+        },
+        {
+          "sku": "SKU-1003",
+          "name": "Laptop Stand",
+          "quantity": 1,
+          "unit_price": 24.0
+        },
+        {
+          "sku": "SKU-1005",
+          "name": "Bluetooth Speaker",
+          "quantity": 1,
+          "unit_price": 33.2
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 31.05,
+        "fuel_surcharge": 2.05,
+        "insurance": 17.52,
+        "tax": 4.05,
+        "total": 54.67,
+        "currency": "USD"
+      },
+      "weight_kg": 43.71,
+      "created_at": "2026-07-18T14:02:22Z",
+      "estimated_delivery": "2026-07-26T14:02:22Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-19T13:02:22Z",
+          "location": "Shenzhen, China",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-20T10:02:22Z",
+          "location": "New York, USA",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-21T00:02:22Z",
+          "location": "Shenzhen, China",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-07-21T21:02:22Z",
+          "location": "Osaka, Japan",
+          "status_update": "Delivery Attempt Failed"
+        },
+        {
+          "timestamp": "2026-07-22T15:02:22Z",
+          "location": "Hamburg, Germany",
+          "status_update": "Returned to Sender"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100006",
+      "order_id": "ORD-202650306",
+      "carrier": "DHL Express",
+      "status": "Returned",
+      "is_international": true,
+      "origin": {
+        "country": "USA",
+        "city": "New York",
+        "warehouse_code": "WH-NEW-1"
+      },
+      "destination": {
+        "country": "UK",
+        "city": "London",
+        "address_line": "247 Harbor Blvd",
+        "postal_code": "20322"
+      },
+      "items": [
+        {
+          "sku": "SKU-1001",
+          "name": "Wireless Mouse",
+          "quantity": 1,
+          "unit_price": 12.5
+        },
+        {
+          "sku": "SKU-1005",
+          "name": "Bluetooth Speaker",
+          "quantity": 3,
+          "unit_price": 33.2
+        },
+        {
+          "sku": "SKU-1003",
+          "name": "Laptop Stand",
+          "quantity": 5,
+          "unit_price": 24.0
+        },
+        {
+          "sku": "SKU-1009",
+          "name": "Phone Case",
+          "quantity": 5,
+          "unit_price": 9.99
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 35.89,
+        "fuel_surcharge": 3.14,
+        "insurance": 5.64,
+        "tax": 3.57,
+        "total": 48.24,
+        "currency": "USD"
+      },
+      "weight_kg": 41.84,
+      "created_at": "2026-06-12T16:16:01Z",
+      "estimated_delivery": "2026-06-16T16:16:01Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-12T23:16:01Z",
+          "location": "Dubai, UAE",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-14T01:16:01Z",
+          "location": "Dubai, UAE",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-14T03:16:01Z",
+          "location": "Sydney, Australia",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-14T15:16:01Z",
+          "location": "Osaka, Japan",
+          "status_update": "Delivery Attempt Failed"
+        },
+        {
+          "timestamp": "2026-06-14T17:16:01Z",
+          "location": "New York, USA",
+          "status_update": "Returned to Sender"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100007",
+      "order_id": "ORD-202667422",
+      "carrier": "BlueDart",
+      "status": "Delivered",
+      "is_international": true,
+      "origin": {
+        "country": "Singapore",
+        "city": "Singapore",
+        "warehouse_code": "WH-SIN-8"
+      },
+      "destination": {
+        "country": "Japan",
+        "city": "Osaka",
+        "address_line": "124 Market Rd",
+        "postal_code": "39451"
+      },
+      "items": [
+        {
+          "sku": "SKU-1003",
+          "name": "Laptop Stand",
+          "quantity": 5,
+          "unit_price": 24.0
+        },
+        {
+          "sku": "SKU-1008",
+          "name": "External SSD 1TB",
+          "quantity": 2,
+          "unit_price": 89.0
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 42.83,
+        "fuel_surcharge": 5.88,
+        "insurance": 5.96,
+        "tax": 4.37,
+        "total": 59.04,
+        "currency": "USD"
+      },
+      "weight_kg": 29.42,
+      "created_at": "2026-07-11T22:09:56Z",
+      "estimated_delivery": "2026-07-15T22:09:56Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-12T13:09:56Z",
+          "location": "Mumbai, India",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-13T08:09:56Z",
+          "location": "Singapore, Singapore",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-14T08:09:56Z",
+          "location": "Mumbai, India",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-07-15T08:09:56Z",
+          "location": "Hamburg, Germany",
+          "status_update": "Arrived at Destination Facility"
+        },
+        {
+          "timestamp": "2026-07-15T22:09:56Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Delivered"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100008",
+      "order_id": "ORD-202638080",
+      "carrier": "BlueDart",
+      "status": "Customs Hold",
+      "is_international": true,
+      "origin": {
+        "country": "UK",
+        "city": "London",
+        "warehouse_code": "WH-LON-3"
+      },
+      "destination": {
+        "country": "USA",
+        "city": "Chicago",
+        "address_line": "741 Harbor Blvd",
+        "postal_code": "85525"
+      },
+      "items": [
+        {
+          "sku": "SKU-1010",
+          "name": "Desk Lamp",
+          "quantity": 1,
+          "unit_price": 19.45
+        },
+        {
+          "sku": "SKU-1004",
+          "name": "Mechanical Keyboard",
+          "quantity": 1,
+          "unit_price": 58.9
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 89.32,
+        "fuel_surcharge": 4.99,
+        "insurance": 0.0,
+        "tax": 7.54,
+        "total": 101.85,
+        "currency": "USD"
+      },
+      "weight_kg": 30.27,
+      "created_at": "2026-07-01T21:21:55Z",
+      "estimated_delivery": "2026-07-11T21:21:55Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-02T01:21:55Z",
+          "location": "Chicago, USA",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-03T06:21:55Z",
+          "location": "London, UK",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-03T10:21:55Z",
+          "location": "Dubai, UAE",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-07-03T19:21:55Z",
+          "location": "Hamburg, Germany",
+          "status_update": "Held at Customs"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100009",
+      "order_id": "ORD-202624322",
+      "carrier": "DHL Express",
+      "status": "Returned",
+      "is_international": true,
+      "origin": {
+        "country": "India",
+        "city": "Mumbai",
+        "warehouse_code": "WH-MUM-4"
+      },
+      "destination": {
+        "country": "UAE",
+        "city": "Dubai",
+        "address_line": "195 Harbor Blvd",
+        "postal_code": "68800"
+      },
+      "items": [
+        {
+          "sku": "SKU-1002",
+          "name": "USB-C Cable",
+          "quantity": 4,
+          "unit_price": 6.75
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 52.2,
+        "fuel_surcharge": 4.76,
+        "insurance": 0.0,
+        "tax": 4.56,
+        "total": 61.52,
+        "currency": "USD"
+      },
+      "weight_kg": 15.6,
+      "created_at": "2026-06-14T05:50:37Z",
+      "estimated_delivery": "2026-06-19T05:50:37Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-15T10:50:37Z",
+          "location": "Singapore, Singapore",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-15T13:50:37Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-16T11:50:37Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-16T16:50:37Z",
+          "location": "Chicago, USA",
+          "status_update": "Delivery Attempt Failed"
+        },
+        {
+          "timestamp": "2026-06-17T06:50:37Z",
+          "location": "Singapore, Singapore",
+          "status_update": "Returned to Sender"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100010",
+      "order_id": "ORD-202662565",
+      "carrier": "FedEx",
+      "status": "Delayed",
+      "is_international": true,
+      "origin": {
+        "country": "China",
+        "city": "Shenzhen",
+        "warehouse_code": "WH-SHE-3"
+      },
+      "destination": {
+        "country": "India",
+        "city": "Hyderabad",
+        "address_line": "389 Main St",
+        "postal_code": "61173"
+      },
+      "items": [
+        {
+          "sku": "SKU-1002",
+          "name": "USB-C Cable",
+          "quantity": 5,
+          "unit_price": 6.75
+        },
+        {
+          "sku": "SKU-1008",
+          "name": "External SSD 1TB",
+          "quantity": 1,
+          "unit_price": 89.0
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 20.31,
+        "fuel_surcharge": 3.05,
+        "insurance": 2.46,
+        "tax": 2.07,
+        "total": 27.89,
+        "currency": "USD"
+      },
+      "weight_kg": 10.01,
+      "created_at": "2026-06-27T11:00:02Z",
+      "estimated_delivery": "2026-07-04T11:00:02Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-28T15:00:02Z",
+          "location": "Chicago, USA",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-28T19:00:02Z",
+          "location": "Mumbai, India",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-29T02:00:02Z",
+          "location": "Shenzhen, China",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-29T19:00:02Z",
+          "location": "Osaka, Japan",
+          "status_update": "In Transit - Delay Reported"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100011",
+      "order_id": "ORD-202618907",
+      "carrier": "DHL Express",
+      "status": "Returned",
+      "is_international": true,
+      "origin": {
+        "country": "Japan",
+        "city": "Osaka",
+        "warehouse_code": "WH-OSA-7"
+      },
+      "destination": {
+        "country": "Germany",
+        "city": "Hamburg",
+        "address_line": "123 Harbor Blvd",
+        "postal_code": "42271"
+      },
+      "items": [
+        {
+          "sku": "SKU-1003",
+          "name": "Laptop Stand",
+          "quantity": 1,
+          "unit_price": 24.0
+        },
+        {
+          "sku": "SKU-1004",
+          "name": "Mechanical Keyboard",
+          "quantity": 5,
+          "unit_price": 58.9
+        },
+        {
+          "sku": "SKU-1005",
+          "name": "Bluetooth Speaker",
+          "quantity": 5,
+          "unit_price": 33.2
+        },
+        {
+          "sku": "SKU-1002",
+          "name": "USB-C Cable",
+          "quantity": 1,
+          "unit_price": 6.75
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 93.54,
+        "fuel_surcharge": 5.21,
+        "insurance": 9.83,
+        "tax": 8.69,
+        "total": 117.27,
+        "currency": "USD"
+      },
+      "weight_kg": 3.55,
+      "created_at": "2026-07-08T19:35:16Z",
+      "estimated_delivery": "2026-07-20T19:35:16Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-09T15:35:16Z",
+          "location": "Osaka, Japan",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-10T09:35:16Z",
+          "location": "Dubai, UAE",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-10T16:35:16Z",
+          "location": "Chicago, USA",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-07-11T10:35:16Z",
+          "location": "New York, USA",
+          "status_update": "Delivery Attempt Failed"
+        },
+        {
+          "timestamp": "2026-07-12T15:35:16Z",
+          "location": "Hyderabad, India",
+          "status_update": "Returned to Sender"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100012",
+      "order_id": "ORD-202619602",
+      "carrier": "BlueDart",
+      "status": "Customs Hold",
+      "is_international": true,
+      "origin": {
+        "country": "Australia",
+        "city": "Sydney",
+        "warehouse_code": "WH-SYD-4"
+      },
+      "destination": {
+        "country": "USA",
+        "city": "Chicago",
+        "address_line": "519 5th Avenue",
+        "postal_code": "27361"
+      },
+      "items": [
+        {
+          "sku": "SKU-1010",
+          "name": "Desk Lamp",
+          "quantity": 2,
+          "unit_price": 19.45
+        },
+        {
+          "sku": "SKU-1009",
+          "name": "Phone Case",
+          "quantity": 3,
+          "unit_price": 9.99
+        },
+        {
+          "sku": "SKU-1006",
+          "name": "27in Monitor",
+          "quantity": 2,
+          "unit_price": 189.99
+        },
+        {
+          "sku": "SKU-1003",
+          "name": "Laptop Stand",
+          "quantity": 3,
+          "unit_price": 24.0
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 56.56,
+        "fuel_surcharge": 6.63,
+        "insurance": 10.42,
+        "tax": 5.89,
+        "total": 79.5,
+        "currency": "USD"
+      },
+      "weight_kg": 44.83,
+      "created_at": "2026-06-08T23:31:03Z",
+      "estimated_delivery": "2026-06-16T23:31:03Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-09T10:31:03Z",
+          "location": "Osaka, Japan",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-09T22:31:03Z",
+          "location": "New York, USA",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-10T00:31:03Z",
+          "location": "Osaka, Japan",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-10T21:31:03Z",
+          "location": "Sydney, Australia",
+          "status_update": "Held at Customs"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100013",
+      "order_id": "ORD-202624029",
+      "carrier": "BlueDart",
+      "status": "Delayed",
+      "is_international": true,
+      "origin": {
+        "country": "USA",
+        "city": "New York",
+        "warehouse_code": "WH-NEW-3"
+      },
+      "destination": {
+        "country": "Germany",
+        "city": "Hamburg",
+        "address_line": "279 5th Avenue",
+        "postal_code": "89276"
+      },
+      "items": [
+        {
+          "sku": "SKU-1008",
+          "name": "External SSD 1TB",
+          "quantity": 3,
+          "unit_price": 89.0
+        },
+        {
+          "sku": "SKU-1009",
+          "name": "Phone Case",
+          "quantity": 5,
+          "unit_price": 9.99
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 118.3,
+        "fuel_surcharge": 15.46,
+        "insurance": 6.34,
+        "tax": 11.21,
+        "total": 151.31,
+        "currency": "USD"
+      },
+      "weight_kg": 12.27,
+      "created_at": "2026-06-18T20:02:03Z",
+      "estimated_delivery": "2026-06-24T20:02:03Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-19T14:02:03Z",
+          "location": "Chicago, USA",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-20T13:02:03Z",
+          "location": "Dubai, UAE",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-21T00:02:03Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-21T05:02:03Z",
+          "location": "Hyderabad, India",
+          "status_update": "In Transit - Delay Reported"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100014",
+      "order_id": "ORD-202666057",
+      "carrier": "BlueDart",
+      "status": "In Transit",
+      "is_international": true,
+      "origin": {
+        "country": "Singapore",
+        "city": "Singapore",
+        "warehouse_code": "WH-SIN-1"
+      },
+      "destination": {
+        "country": "UK",
+        "city": "London",
+        "address_line": "115 Main St",
+        "postal_code": "29536"
+      },
+      "items": [
+        {
+          "sku": "SKU-1009",
+          "name": "Phone Case",
+          "quantity": 1,
+          "unit_price": 9.99
+        },
+        {
+          "sku": "SKU-1008",
+          "name": "External SSD 1TB",
+          "quantity": 1,
+          "unit_price": 89.0
+        },
+        {
+          "sku": "SKU-1005",
+          "name": "Bluetooth Speaker",
+          "quantity": 4,
+          "unit_price": 33.2
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 102.08,
+        "fuel_surcharge": 5.55,
+        "insurance": 4.64,
+        "tax": 8.98,
+        "total": 121.25,
+        "currency": "USD"
+      },
+      "weight_kg": 20.16,
+      "created_at": "2026-07-08T08:59:31Z",
+      "estimated_delivery": "2026-07-19T08:59:31Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-08T20:59:31Z",
+          "location": "Hyderabad, India",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-09T18:59:31Z",
+          "location": "Hamburg, Germany",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-10T01:59:31Z",
+          "location": "Singapore, Singapore",
+          "status_update": "Arrived at Sorting Hub"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100015",
+      "order_id": "ORD-202683385",
+      "carrier": "Maersk Line",
+      "status": "Customs Hold",
+      "is_international": true,
+      "origin": {
+        "country": "USA",
+        "city": "Chicago",
+        "warehouse_code": "WH-CHI-3"
+      },
+      "destination": {
+        "country": "China",
+        "city": "Shenzhen",
+        "address_line": "948 Market Rd",
+        "postal_code": "31299"
+      },
+      "items": [
+        {
+          "sku": "SKU-1007",
+          "name": "Webcam HD",
+          "quantity": 1,
+          "unit_price": 41.3
+        },
+        {
+          "sku": "SKU-1003",
+          "name": "Laptop Stand",
+          "quantity": 3,
+          "unit_price": 24.0
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 53.29,
+        "fuel_surcharge": 7.64,
+        "insurance": 2.27,
+        "tax": 5.06,
+        "total": 68.26,
+        "currency": "USD"
+      },
+      "weight_kg": 5.07,
+      "created_at": "2026-07-01T19:44:18Z",
+      "estimated_delivery": "2026-07-06T19:44:18Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-03T00:44:18Z",
+          "location": "Chicago, USA",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-04T06:44:18Z",
+          "location": "London, UK",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-04T14:44:18Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-07-04T23:44:18Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Held at Customs"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100016",
+      "order_id": "ORD-202639831",
+      "carrier": "DHL Express",
+      "status": "In Transit",
+      "is_international": true,
+      "origin": {
+        "country": "China",
+        "city": "Shenzhen",
+        "warehouse_code": "WH-SHE-1"
+      },
+      "destination": {
+        "country": "USA",
+        "city": "Chicago",
+        "address_line": "676 Market Rd",
+        "postal_code": "62227"
+      },
+      "items": [
+        {
+          "sku": "SKU-1007",
+          "name": "Webcam HD",
+          "quantity": 2,
+          "unit_price": 41.3
+        },
+        {
+          "sku": "SKU-1004",
+          "name": "Mechanical Keyboard",
+          "quantity": 1,
+          "unit_price": 58.9
+        },
+        {
+          "sku": "SKU-1005",
+          "name": "Bluetooth Speaker",
+          "quantity": 4,
+          "unit_price": 33.2
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 106.58,
+        "fuel_surcharge": 14.48,
+        "insurance": 5.49,
+        "tax": 10.12,
+        "total": 136.67,
+        "currency": "USD"
+      },
+      "weight_kg": 37.01,
+      "created_at": "2026-07-10T18:09:35Z",
+      "estimated_delivery": "2026-07-18T18:09:35Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-11T03:09:35Z",
+          "location": "Mumbai, India",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-12T07:09:35Z",
+          "location": "Osaka, Japan",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-12T20:09:35Z",
+          "location": "Hamburg, Germany",
+          "status_update": "Arrived at Sorting Hub"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100017",
+      "order_id": "ORD-202685574",
+      "carrier": "DHL Express",
+      "status": "Delayed",
+      "is_international": true,
+      "origin": {
+        "country": "Germany",
+        "city": "Hamburg",
+        "warehouse_code": "WH-HAM-5"
+      },
+      "destination": {
+        "country": "USA",
+        "city": "New York",
+        "address_line": "46 Industrial Ave",
+        "postal_code": "10221"
+      },
+      "items": [
+        {
+          "sku": "SKU-1009",
+          "name": "Phone Case",
+          "quantity": 3,
+          "unit_price": 9.99
+        },
+        {
+          "sku": "SKU-1006",
+          "name": "27in Monitor",
+          "quantity": 2,
+          "unit_price": 189.99
+        },
+        {
+          "sku": "SKU-1001",
+          "name": "Wireless Mouse",
+          "quantity": 5,
+          "unit_price": 12.5
+        },
+        {
+          "sku": "SKU-1008",
+          "name": "External SSD 1TB",
+          "quantity": 3,
+          "unit_price": 89.0
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 19.02,
+        "fuel_surcharge": 2.09,
+        "insurance": 14.79,
+        "tax": 2.87,
+        "total": 38.77,
+        "currency": "USD"
+      },
+      "weight_kg": 17.64,
+      "created_at": "2026-06-22T01:06:53Z",
+      "estimated_delivery": "2026-07-03T01:06:53Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-22T14:06:53Z",
+          "location": "Singapore, Singapore",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-23T17:06:53Z",
+          "location": "London, UK",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-24T08:06:53Z",
+          "location": "Sydney, Australia",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-25T02:06:53Z",
+          "location": "New York, USA",
+          "status_update": "In Transit - Delay Reported"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100018",
+      "order_id": "ORD-202682667",
+      "carrier": "DHL Express",
+      "status": "Out for Delivery",
+      "is_international": true,
+      "origin": {
+        "country": "UAE",
+        "city": "Dubai",
+        "warehouse_code": "WH-DUB-4"
+      },
+      "destination": {
+        "country": "Singapore",
+        "city": "Singapore",
+        "address_line": "431 Industrial Ave",
+        "postal_code": "98777"
+      },
+      "items": [
+        {
+          "sku": "SKU-1006",
+          "name": "27in Monitor",
+          "quantity": 1,
+          "unit_price": 189.99
+        },
+        {
+          "sku": "SKU-1007",
+          "name": "Webcam HD",
+          "quantity": 3,
+          "unit_price": 41.3
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 80.43,
+        "fuel_surcharge": 9.36,
+        "insurance": 6.28,
+        "tax": 7.69,
+        "total": 103.76,
+        "currency": "USD"
+      },
+      "weight_kg": 31.53,
+      "created_at": "2026-07-11T00:26:04Z",
+      "estimated_delivery": "2026-07-25T00:26:04Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-11T05:26:04Z",
+          "location": "Singapore, Singapore",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-12T11:26:04Z",
+          "location": "Hamburg, Germany",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-13T05:26:04Z",
+          "location": "Hamburg, Germany",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-07-14T04:26:04Z",
+          "location": "Shenzhen, China",
+          "status_update": "Arrived at Destination Facility"
+        },
+        {
+          "timestamp": "2026-07-14T16:26:04Z",
+          "location": "Shenzhen, China",
+          "status_update": "Out for Delivery"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100019",
+      "order_id": "ORD-202677561",
+      "carrier": "BlueDart",
+      "status": "Customs Hold",
+      "is_international": true,
+      "origin": {
+        "country": "India",
+        "city": "Hyderabad",
+        "warehouse_code": "WH-HYD-6"
+      },
+      "destination": {
+        "country": "Brazil",
+        "city": "Sao Paulo",
+        "address_line": "96 Market Rd",
+        "postal_code": "98184"
+      },
+      "items": [
+        {
+          "sku": "SKU-1009",
+          "name": "Phone Case",
+          "quantity": 2,
+          "unit_price": 9.99
+        },
+        {
+          "sku": "SKU-1001",
+          "name": "Wireless Mouse",
+          "quantity": 4,
+          "unit_price": 12.5
+        },
+        {
+          "sku": "SKU-1005",
+          "name": "Bluetooth Speaker",
+          "quantity": 5,
+          "unit_price": 33.2
+        },
+        {
+          "sku": "SKU-1003",
+          "name": "Laptop Stand",
+          "quantity": 5,
+          "unit_price": 24.0
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 83.74,
+        "fuel_surcharge": 8.08,
+        "insurance": 7.12,
+        "tax": 7.92,
+        "total": 106.86,
+        "currency": "USD"
+      },
+      "weight_kg": 4.27,
+      "created_at": "2026-06-19T14:37:55Z",
+      "estimated_delivery": "2026-06-26T14:37:55Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-20T06:37:55Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-20T14:37:55Z",
+          "location": "Dubai, UAE",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-21T07:37:55Z",
+          "location": "Singapore, Singapore",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-21T14:37:55Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Held at Customs"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100020",
+      "order_id": "ORD-202660328",
+      "carrier": "Maersk Line",
+      "status": "In Transit",
+      "is_international": true,
+      "origin": {
+        "country": "India",
+        "city": "Mumbai",
+        "warehouse_code": "WH-MUM-7"
+      },
+      "destination": {
+        "country": "Germany",
+        "city": "Hamburg",
+        "address_line": "250 Market Rd",
+        "postal_code": "95990"
+      },
+      "items": [
+        {
+          "sku": "SKU-1004",
+          "name": "Mechanical Keyboard",
+          "quantity": 4,
+          "unit_price": 58.9
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 79.18,
+        "fuel_surcharge": 10.04,
+        "insurance": 4.71,
+        "tax": 7.51,
+        "total": 101.44,
+        "currency": "USD"
+      },
+      "weight_kg": 32.47,
+      "created_at": "2026-06-06T04:27:27Z",
+      "estimated_delivery": "2026-06-20T04:27:27Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-06T20:27:27Z",
+          "location": "Shenzhen, China",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-08T02:27:27Z",
+          "location": "Sao Paulo, Brazil",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-08T22:27:27Z",
+          "location": "Mumbai, India",
+          "status_update": "Arrived at Sorting Hub"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100021",
+      "order_id": "ORD-202676162",
+      "carrier": "Maersk Line",
+      "status": "Returned",
+      "is_international": true,
+      "origin": {
+        "country": "USA",
+        "city": "Chicago",
+        "warehouse_code": "WH-CHI-9"
+      },
+      "destination": {
+        "country": "India",
+        "city": "Hyderabad",
+        "address_line": "457 Market Rd",
+        "postal_code": "72216"
+      },
+      "items": [
+        {
+          "sku": "SKU-1009",
+          "name": "Phone Case",
+          "quantity": 1,
+          "unit_price": 9.99
+        },
+        {
+          "sku": "SKU-1008",
+          "name": "External SSD 1TB",
+          "quantity": 5,
+          "unit_price": 89.0
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 41.17,
+        "fuel_surcharge": 5.55,
+        "insurance": 9.1,
+        "tax": 4.47,
+        "total": 60.29,
+        "currency": "USD"
+      },
+      "weight_kg": 27.76,
+      "created_at": "2026-06-15T14:58:06Z",
+      "estimated_delivery": "2026-06-25T14:58:06Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-16T06:58:06Z",
+          "location": "Hyderabad, India",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-17T09:58:06Z",
+          "location": "Osaka, Japan",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-18T08:58:06Z",
+          "location": "Dubai, UAE",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-19T03:58:06Z",
+          "location": "Sydney, Australia",
+          "status_update": "Delivery Attempt Failed"
+        },
+        {
+          "timestamp": "2026-06-19T15:58:06Z",
+          "location": "Osaka, Japan",
+          "status_update": "Returned to Sender"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100022",
+      "order_id": "ORD-202681121",
+      "carrier": "Maersk Line",
+      "status": "Out for Delivery",
+      "is_international": true,
+      "origin": {
+        "country": "Germany",
+        "city": "Hamburg",
+        "warehouse_code": "WH-HAM-7"
+      },
+      "destination": {
+        "country": "India",
+        "city": "Mumbai",
+        "address_line": "64 Market Rd",
+        "postal_code": "65069"
+      },
+      "items": [
+        {
+          "sku": "SKU-1004",
+          "name": "Mechanical Keyboard",
+          "quantity": 3,
+          "unit_price": 58.9
+        },
+        {
+          "sku": "SKU-1005",
+          "name": "Bluetooth Speaker",
+          "quantity": 2,
+          "unit_price": 33.2
+        },
+        {
+          "sku": "SKU-1008",
+          "name": "External SSD 1TB",
+          "quantity": 3,
+          "unit_price": 89.0
+        },
+        {
+          "sku": "SKU-1001",
+          "name": "Wireless Mouse",
+          "quantity": 3,
+          "unit_price": 12.5
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 48.57,
+        "fuel_surcharge": 5.05,
+        "insurance": 10.95,
+        "tax": 5.17,
+        "total": 69.74,
+        "currency": "USD"
+      },
+      "weight_kg": 18.64,
+      "created_at": "2026-06-18T11:05:28Z",
+      "estimated_delivery": "2026-06-27T11:05:28Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-18T17:05:28Z",
+          "location": "Hyderabad, India",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-19T02:05:28Z",
+          "location": "Shenzhen, China",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-20T02:05:28Z",
+          "location": "Hyderabad, India",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-21T02:05:28Z",
+          "location": "Mumbai, India",
+          "status_update": "Arrived at Destination Facility"
+        },
+        {
+          "timestamp": "2026-06-21T06:05:28Z",
+          "location": "Shenzhen, China",
+          "status_update": "Out for Delivery"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100023",
+      "order_id": "ORD-202662994",
+      "carrier": "DHL Express",
+      "status": "Customs Hold",
+      "is_international": true,
+      "origin": {
+        "country": "Australia",
+        "city": "Sydney",
+        "warehouse_code": "WH-SYD-8"
+      },
+      "destination": {
+        "country": "USA",
+        "city": "Chicago",
+        "address_line": "942 Market Rd",
+        "postal_code": "91560"
+      },
+      "items": [
+        {
+          "sku": "SKU-1001",
+          "name": "Wireless Mouse",
+          "quantity": 4,
+          "unit_price": 12.5
+        },
+        {
+          "sku": "SKU-1006",
+          "name": "27in Monitor",
+          "quantity": 4,
+          "unit_price": 189.99
+        },
+        {
+          "sku": "SKU-1005",
+          "name": "Bluetooth Speaker",
+          "quantity": 5,
+          "unit_price": 33.2
+        },
+        {
+          "sku": "SKU-1007",
+          "name": "Webcam HD",
+          "quantity": 5,
+          "unit_price": 41.3
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 98.99,
+        "fuel_surcharge": 13.84,
+        "insurance": 23.65,
+        "tax": 10.92,
+        "total": 147.4,
+        "currency": "USD"
+      },
+      "weight_kg": 30.26,
+      "created_at": "2026-06-23T11:10:33Z",
+      "estimated_delivery": "2026-07-04T11:10:33Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-24T04:10:33Z",
+          "location": "Mumbai, India",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-24T14:10:33Z",
+          "location": "Shenzhen, China",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-25T07:10:33Z",
+          "location": "Chicago, USA",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-25T21:10:33Z",
+          "location": "London, UK",
+          "status_update": "Held at Customs"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100024",
+      "order_id": "ORD-202659692",
+      "carrier": "UPS",
+      "status": "Customs Hold",
+      "is_international": true,
+      "origin": {
+        "country": "USA",
+        "city": "Chicago",
+        "warehouse_code": "WH-CHI-7"
+      },
+      "destination": {
+        "country": "Japan",
+        "city": "Osaka",
+        "address_line": "259 Main St",
+        "postal_code": "71644"
+      },
+      "items": [
+        {
+          "sku": "SKU-1002",
+          "name": "USB-C Cable",
+          "quantity": 4,
+          "unit_price": 6.75
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 29.25,
+        "fuel_surcharge": 2.81,
+        "insurance": 0.0,
+        "tax": 2.56,
+        "total": 34.62,
+        "currency": "USD"
+      },
+      "weight_kg": 34.37,
+      "created_at": "2026-07-02T09:33:51Z",
+      "estimated_delivery": "2026-07-05T09:33:51Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-07-02T12:33:51Z",
+          "location": "Hamburg, Germany",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-07-03T02:33:51Z",
+          "location": "London, UK",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-07-03T10:33:51Z",
+          "location": "Osaka, Japan",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-07-03T22:33:51Z",
+          "location": "London, UK",
+          "status_update": "Held at Customs"
+        }
+      ]
+    },
+    {
+      "shipment_id": "SHP-100025",
+      "order_id": "ORD-202658351",
+      "carrier": "DHL Express",
+      "status": "Delivered",
+      "is_international": true,
+      "origin": {
+        "country": "Singapore",
+        "city": "Singapore",
+        "warehouse_code": "WH-SIN-2"
+      },
+      "destination": {
+        "country": "UAE",
+        "city": "Dubai",
+        "address_line": "797 Market Rd",
+        "postal_code": "50768"
+      },
+      "items": [
+        {
+          "sku": "SKU-1002",
+          "name": "USB-C Cable",
+          "quantity": 1,
+          "unit_price": 6.75
+        },
+        {
+          "sku": "SKU-1001",
+          "name": "Wireless Mouse",
+          "quantity": 2,
+          "unit_price": 12.5
+        }
+      ],
+      "cost_breakdown": {
+        "base_rate": 35.93,
+        "fuel_surcharge": 1.87,
+        "insurance": 0.0,
+        "tax": 3.02,
+        "total": 40.82,
+        "currency": "USD"
+      },
+      "weight_kg": 11.9,
+      "created_at": "2026-06-21T23:44:00Z",
+      "estimated_delivery": "2026-06-25T23:44:00Z",
+      "tracking_events": [
+        {
+          "timestamp": "2026-06-22T05:44:00Z",
+          "location": "Mumbai, India",
+          "status_update": "Order Picked Up"
+        },
+        {
+          "timestamp": "2026-06-22T11:44:00Z",
+          "location": "Osaka, Japan",
+          "status_update": "Departed Origin Facility"
+        },
+        {
+          "timestamp": "2026-06-23T10:44:00Z",
+          "location": "New York, USA",
+          "status_update": "Arrived at Sorting Hub"
+        },
+        {
+          "timestamp": "2026-06-24T06:44:00Z",
+          "location": "Mumbai, India",
+          "status_update": "Arrived at Destination Facility"
+        },
+        {
+          "timestamp": "2026-06-24T22:44:00Z",
+          "location": "Singapore, Singapore",
+          "status_update": "Delivered"
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 package main
+
 import (
 	"log"
 
@@ -7,14 +8,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-func main(){
-	db,err:=config.ConnectDB()
-	if err!=nil{
+
+func main() {
+	db, err := config.ConnectDB()
+	if err != nil {
 		log.Fatal("could not connect database")
 	}
 	defer db.Close()
-	router:=gin.Default()
+	router := gin.Default()
 	routes.RegisterRoutes(router, db)
 
-    router.Run(":8080")
+	router.Run(":8060")
 }

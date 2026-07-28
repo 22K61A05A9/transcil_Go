@@ -1,0 +1,345 @@
+{
+  "info": {
+    "_postman_id": "eea11eb6-d926-412d-84e1-d5c631b2c062",
+    "name": "paylater",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "56569150",
+    "_collection_link": "https://go.postman.co/collection/56569150-eea11eb6-d926-412d-84e1-d5c631b2c062?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "createuser",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"user_name\": \"abc\",\r\n    \"email\": \"abc@gmail.com\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "createuser",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"user_name\": \"xyz\",\r\n    \"email\": \"xyz@gmail.com\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get_all_users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get_user_by_id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/users/12",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "users",
+            "12"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "delete user",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/users/4",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "users",
+            "4"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "update user",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"id\":5,\r\n    \"user_name\": \"Hari Priyanka\",\r\n    \"email\": \"hari@gmail.com\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "create merchant",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"merchant_name\": \"Amazon\",\r\n    \"phone_number\": {\r\n        \"String\": \"9876543210\",\r\n        \"Valid\": true\r\n    },\r\n    \"commission_percentage\": \"2.50\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/merchants",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "create merchant",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"merchant_name\": \"zepto\",\r\n    \"phone_number\": {\r\n        \"String\": \"9566543210\",\r\n        \"Valid\": true\r\n    },\r\n    \"commission_percentage\": \"5.50\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/merchants",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get all merchants",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"merchant_name\": \"zepto\",\r\n    \"phone_number\": {\r\n        \"String\": \"9566543210\",\r\n        \"Valid\": true\r\n    },\r\n    \"commission_percentage\": \"5.50\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/merchants",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get merchant by id",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"merchant_name\": \"zepto\",\r\n    \"phone_number\": {\r\n        \"String\": \"9566543210\",\r\n        \"Valid\": true\r\n    },\r\n    \"commission_percentage\": \"5.50\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/merchants/2",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchants",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "delete merchant",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"merchant_name\": \"zepto\",\r\n    \"phone_number\": {\r\n        \"String\": \"9566543210\",\r\n        \"Valid\": true\r\n    },\r\n    \"commission_percentage\": \"5.50\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/merchants/3",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchants",
+            "3"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "update merchant",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"merchant_name\": \"Amazon India\",\r\n    \"phone_number\":{\r\n    \"String\":\"9999999999\",\r\n    \"Valid\":true\r\n    }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/merchants/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchants",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "update commission",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"commission_percentage\": \"6.00\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/merchants/1/commission",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchants",
+            "1",
+            "commission"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

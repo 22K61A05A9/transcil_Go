@@ -1,5 +1,5 @@
 -- name: CreateUser :exec
-INSERT INTO users (user_name, email)VALUES (?, ?);
+INSERT INTO users (user_name, email,password ,role)VALUES (?, ?,?,?);
 -- name: GetUserByID :one
 SELECT * FROM users WHERE id = ?;
 -- name: GetAllUsers :many
@@ -12,3 +12,7 @@ DELETE FROM users WHERE id = ?;
 UPDATE users
 SET current_due = ?
 WHERE id = ?;
+-- name: GetUserByEmail :one
+SELECT *
+FROM users
+WHERE email = ?;

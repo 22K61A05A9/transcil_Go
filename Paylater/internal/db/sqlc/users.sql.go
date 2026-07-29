@@ -10,16 +10,23 @@ import (
 )
 
 const createUser = `-- name: CreateUser :exec
-INSERT INTO users (user_name, email)VALUES (?, ?)
+INSERT INTO users (user_name, email,password ,role)VALUES (?, ?,?,?)
 `
 
 type CreateUserParams struct {
-	UserName string `json:"user_name"`
-	Email    string `json:"email"`
+	UserName string    `json:"user_name"`
+	Email    string    `json:"email"`
+	Password string    `json:"password"`
+	Role     UsersRole `json:"role"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
-	_, err := q.db.ExecContext(ctx, createUser, arg.UserName, arg.Email)
+	_, err := q.db.ExecContext(ctx, createUser,
+		arg.UserName,
+		arg.Email,
+		arg.Password,
+		arg.Role,
+	)
 	return err
 }
 
@@ -33,7 +40,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, user_name, email, credit_limit, current_due FROM users
+SELECT id, user_name, email, password, role, credit_limit, current_due FROM users
 `
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
@@ -49,6 +56,8 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.ID,
 			&i.UserName,
 			&i.Email,
+			&i.Password,
+			&i.Role,
 			&i.CreditLimit,
 			&i.CurrentDue,
 		); err != nil {
@@ -65,8 +74,29 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, user_name, email, password, role, credit_limit, current_due
+FROM users
+WHERE email = ?
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.UserName,
+		&i.Email,
+		&i.Password,
+		&i.Role,
+		&i.CreditLimit,
+		&i.CurrentDue,
+	)
+	return i, err
+}
+
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, user_name, email, credit_limit, current_due FROM users WHERE id = ?
+SELECT id, user_name, email, password, role, credit_limit, current_due FROM users WHERE id = ?
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id int32) (User, error) {
@@ -76,6 +106,8 @@ func (q *Queries) GetUserByID(ctx context.Context, id int32) (User, error) {
 		&i.ID,
 		&i.UserName,
 		&i.Email,
+		&i.Password,
+		&i.Role,
 		&i.CreditLimit,
 		&i.CurrentDue,
 	)

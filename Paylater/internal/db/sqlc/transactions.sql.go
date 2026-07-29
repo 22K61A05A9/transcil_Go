@@ -7,24 +7,27 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createTransaction = `-- name: CreateTransaction :exec
-Insert into transactions (user_id, merchant_id, amount, commission,commission_percentage) values (?,?,?,?,?)
+Insert into transactions (user_id, merchant_id, transaction_type, amount, commission,commission_percentage) values (?,?,?,?,?,?)
 `
 
 type CreateTransactionParams struct {
-	UserID               int32  `json:"user_id"`
-	MerchantID           int32  `json:"merchant_id"`
-	Amount               string `json:"amount"`
-	Commission           string `json:"commission"`
-	CommissionPercentage string `json:"commission_percentage"`
+	UserID               int32                       `json:"user_id"`
+	MerchantID           sql.NullInt32               `json:"merchant_id"`
+	TransactionType      TransactionsTransactionType `json:"transaction_type"`
+	Amount               string                      `json:"amount"`
+	Commission           string                      `json:"commission"`
+	CommissionPercentage string                      `json:"commission_percentage"`
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) error {
 	_, err := q.db.ExecContext(ctx, createTransaction,
 		arg.UserID,
 		arg.MerchantID,
+		arg.TransactionType,
 		arg.Amount,
 		arg.Commission,
 		arg.CommissionPercentage,
@@ -33,7 +36,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 }
 
 const getAllTransactions = `-- name: GetAllTransactions :many
-Select id, user_id, merchant_id, amount, commission, commission_percentage, transaction_date from transactions
+Select id, user_id, merchant_id, transaction_type, amount, commission, commission_percentage from transactions
 `
 
 func (q *Queries) GetAllTransactions(ctx context.Context) ([]Transaction, error) {
@@ -49,10 +52,10 @@ func (q *Queries) GetAllTransactions(ctx context.Context) ([]Transaction, error)
 			&i.ID,
 			&i.UserID,
 			&i.MerchantID,
+			&i.TransactionType,
 			&i.Amount,
 			&i.Commission,
 			&i.CommissionPercentage,
-			&i.TransactionDate,
 		); err != nil {
 			return nil, err
 		}
@@ -68,7 +71,7 @@ func (q *Queries) GetAllTransactions(ctx context.Context) ([]Transaction, error)
 }
 
 const getTransactionByID = `-- name: GetTransactionByID :one
-Select id, user_id, merchant_id, amount, commission, commission_percentage, transaction_date from transactions where id = ?
+Select id, user_id, merchant_id, transaction_type, amount, commission, commission_percentage from transactions where id = ?
 `
 
 func (q *Queries) GetTransactionByID(ctx context.Context, id int32) (Transaction, error) {
@@ -78,19 +81,19 @@ func (q *Queries) GetTransactionByID(ctx context.Context, id int32) (Transaction
 		&i.ID,
 		&i.UserID,
 		&i.MerchantID,
+		&i.TransactionType,
 		&i.Amount,
 		&i.Commission,
 		&i.CommissionPercentage,
-		&i.TransactionDate,
 	)
 	return i, err
 }
 
 const getTransactionsByMerchant = `-- name: GetTransactionsByMerchant :many
-SELECT id, user_id, merchant_id, amount, commission, commission_percentage, transaction_dateFROM transactions WHERE merchant_id = ?
+SELECT id, user_id, merchant_id, transaction_type, amount, commission, commission_percentage FROM transactions WHERE merchant_id = ?
 `
 
-func (q *Queries) GetTransactionsByMerchant(ctx context.Context, merchantID int32) ([]Transaction, error) {
+func (q *Queries) GetTransactionsByMerchant(ctx context.Context, merchantID sql.NullInt32) ([]Transaction, error) {
 	rows, err := q.db.QueryContext(ctx, getTransactionsByMerchant, merchantID)
 	if err != nil {
 		return nil, err
@@ -103,10 +106,10 @@ func (q *Queries) GetTransactionsByMerchant(ctx context.Context, merchantID int3
 			&i.ID,
 			&i.UserID,
 			&i.MerchantID,
+			&i.TransactionType,
 			&i.Amount,
 			&i.Commission,
 			&i.CommissionPercentage,
-			&i.TransactionDate,
 		); err != nil {
 			return nil, err
 		}
@@ -122,7 +125,7 @@ func (q *Queries) GetTransactionsByMerchant(ctx context.Context, merchantID int3
 }
 
 const getTransactionsByUser = `-- name: GetTransactionsByUser :many
-SELECT id, user_id, merchant_id, amount, commission, commission_percentage, transaction_date FROM transactions WHERE user_id = ?
+SELECT id, user_id, merchant_id, transaction_type, amount, commission, commission_percentage FROM transactions WHERE user_id = ?
 `
 
 func (q *Queries) GetTransactionsByUser(ctx context.Context, userID int32) ([]Transaction, error) {
@@ -138,10 +141,10 @@ func (q *Queries) GetTransactionsByUser(ctx context.Context, userID int32) ([]Tr
 			&i.ID,
 			&i.UserID,
 			&i.MerchantID,
+			&i.TransactionType,
 			&i.Amount,
 			&i.Commission,
 			&i.CommissionPercentage,
-			&i.TransactionDate,
 		); err != nil {
 			return nil, err
 		}

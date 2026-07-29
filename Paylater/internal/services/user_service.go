@@ -3,11 +3,26 @@ import (
 	"context"
 	"Paylater/internal/db/sqlc"
 	"Paylater/internal/database"
+	"golang.org/x/crypto/bcrypt"
 )
 func CreateUser(user sqlc.CreateUserParams) error {
 
-	err := database.Queries.CreateUser(context.Background(), user)
+	// Hash the password
+	hashedPassword, err := bcrypt.GenerateFromPassword(
+		[]byte(user.Password),
+		bcrypt.DefaultCost,
+	)
+	if err != nil {
+		return err
+	}
 
+	// Replace plain password with hashed password
+	user.Password = string(hashedPassword)
+
+	// Always create normal users
+	user.Role = sqlc.UsersRoleUSER
+
+	err = database.Queries.CreateUser(context.Background(), user)
 	if err != nil {
 		return err
 	}

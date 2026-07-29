@@ -7,10 +7,11 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
 
 const getCustomersWithDue = `-- name: GetCustomersWithDue :many
-SELECT id, user_name, email, credit_limit, current_due FROM users WHERE current_due > 0 ORDER BY current_due DESC
+SELECT id, user_name, email, password, role, credit_limit, current_due FROM users WHERE current_due > 0 ORDER BY current_due DESC
 `
 
 func (q *Queries) GetCustomersWithDue(ctx context.Context) ([]User, error) {
@@ -26,6 +27,8 @@ func (q *Queries) GetCustomersWithDue(ctx context.Context) ([]User, error) {
 			&i.ID,
 			&i.UserName,
 			&i.Email,
+			&i.Password,
+			&i.Role,
 			&i.CreditLimit,
 			&i.CurrentDue,
 		); err != nil {
@@ -46,7 +49,7 @@ const getMerchantFeeCollected = `-- name: GetMerchantFeeCollected :one
 SELECT SUM(commission) AS total_fee FROM transactions WHERE merchant_id = ?
 `
 
-func (q *Queries) GetMerchantFeeCollected(ctx context.Context, merchantID int32) (interface{}, error) {
+func (q *Queries) GetMerchantFeeCollected(ctx context.Context, merchantID sql.NullInt32) (interface{}, error) {
 	row := q.db.QueryRowContext(ctx, getMerchantFeeCollected, merchantID)
 	var total_fee interface{}
 	err := row.Scan(&total_fee)
@@ -76,7 +79,7 @@ func (q *Queries) GetUserDue(ctx context.Context, id int32) (string, error) {
 }
 
 const getUsersReachedCreditLimit = `-- name: GetUsersReachedCreditLimit :many
-SELECT id, user_name, email, credit_limit, current_due FROM users WHERE current_due >= credit_limit
+SELECT id, user_name, email, password, role, credit_limit, current_due FROM users WHERE current_due >= credit_limit
 `
 
 func (q *Queries) GetUsersReachedCreditLimit(ctx context.Context) ([]User, error) {
@@ -92,6 +95,8 @@ func (q *Queries) GetUsersReachedCreditLimit(ctx context.Context) ([]User, error
 			&i.ID,
 			&i.UserName,
 			&i.Email,
+			&i.Password,
+			&i.Role,
 			&i.CreditLimit,
 			&i.CurrentDue,
 		); err != nil {

@@ -10,9 +10,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func UserLogin(email, password string) (string, error) {
+func UserLogin(ctx context.Context, email, password string) (string, error) {
 
-	user, err := database.Queries.GetUserByEmail(context.Background(), email)
+	user, err := database.Queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		return "", errors.New("invalid email or password")
 	}

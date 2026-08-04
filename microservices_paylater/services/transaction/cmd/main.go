@@ -6,6 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
+	"Paylater/services/transaction/internal/clients"
+	"Paylater/services/transaction/internal/config"
 	"Paylater/services/transaction/internal/database"
 	"Paylater/services/transaction/internal/db/sqlc"
 	"Paylater/services/transaction/internal/routes"
@@ -18,6 +20,8 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	utils.InitJWTSecret()
+
+	clients.Init(config.Load())
 
 	db, err := database.NewDB()
 	if err != nil {

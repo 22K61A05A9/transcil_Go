@@ -1,7 +1,7 @@
 go 1.26.5
 
 use (
-	.
+	./monolithic
 	./services/admin
 	./services/merchant
 	./services/user

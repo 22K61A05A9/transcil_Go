@@ -10,9 +10,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func MerchantLogin(email, password string) (string, error) {
+func MerchantLogin(ctx context.Context, email, password string) (string, error) {
 
-	merchant, err := database.Queries.GetMerchantByEmail(context.Background(), email)
+	merchant, err := database.Queries.GetMerchantByEmail(ctx, email)
 	if err != nil {
 		return "", errors.New("invalid email or password")
 	}

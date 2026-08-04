@@ -9,9 +9,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateAdmin(admin sqlc.CreateAdminParams) error {
+func CreateAdmin(ctx context.Context, admin sqlc.CreateAdminParams) error {
 
-	// Hash Password
 	hashedPassword, err := bcrypt.GenerateFromPassword(
 		[]byte(admin.Password),
 		bcrypt.DefaultCost,
@@ -20,43 +19,19 @@ func CreateAdmin(admin sqlc.CreateAdminParams) error {
 		return err
 	}
 
-	// Store hashed password
 	admin.Password = string(hashedPassword)
 
-	err = database.Queries.CreateAdmin(context.Background(), admin)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return database.Queries.CreateAdmin(ctx, admin)
 }
 
-func GetAdmins() ([]sqlc.Admin, error) {
-
-	admins, err := database.Queries.GetAllAdmins(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	return admins, nil
+func GetAdmins(ctx context.Context) ([]sqlc.Admin, error) {
+	return database.Queries.GetAllAdmins(ctx)
 }
 
-func GetAdminByID(id int32) (sqlc.Admin, error) {
-
-	admin, err := database.Queries.GetAdminByID(context.Background(), id)
-	if err != nil {
-		return sqlc.Admin{}, err
-	}
-
-	return admin, nil
+func GetAdminByID(ctx context.Context, id int32) (sqlc.Admin, error) {
+	return database.Queries.GetAdminByID(ctx, id)
 }
 
-func DeleteAdmin(id int32) error {
-
-	err := database.Queries.DeleteAdmin(context.Background(), id)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func DeleteAdmin(ctx context.Context, id int32) error {
+	return database.Queries.DeleteAdmin(ctx, id)
 }

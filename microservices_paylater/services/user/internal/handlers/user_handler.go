@@ -29,7 +29,7 @@ func CreateUser(c *gin.Context) {
 		Password: req.Password,
 	}
 
-	err = services.CreateUser(user)
+	err = services.CreateUser(c.Request.Context(), user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -44,7 +44,7 @@ func CreateUser(c *gin.Context) {
 
 func GetUsers(c *gin.Context) {
 
-	users, err := services.GetUsers()
+	users, err := services.GetUsers(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -76,7 +76,7 @@ func GetUserByID(c *gin.Context) {
 		return
 	}
 
-	user, err := services.GetUserByID(int32(id))
+	user, err := services.GetUserByID(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -119,7 +119,7 @@ func UpdateUser(c *gin.Context) {
 		UserName: req.UserName,
 	}
 
-	err = services.UpdateUser(user)
+	err = services.UpdateUser(c.Request.Context(), user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -142,7 +142,7 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	err = services.DeleteUser(int32(id))
+	err = services.DeleteUser(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -152,5 +152,39 @@ func DeleteUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "User Deleted Successfully",
+	})
+}
+
+func UpdateCurrentDue(c *gin.Context) {
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid User ID",
+		})
+		return
+	}
+
+	var req models.UpdateCurrentDueRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	err = services.UpdateCurrentDue(c.Request.Context(), sqlc.UpdateCurrentDueParams{
+		ID:         int32(id),
+		CurrentDue: req.CurrentDue,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Current due updated successfully",
 	})
 }

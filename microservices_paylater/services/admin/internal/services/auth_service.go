@@ -10,9 +10,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func AdminLogin(email, password string) (string, error) {
+func AdminLogin(ctx context.Context, email, password string) (string, error) {
 
-	admin, err := database.Queries.GetAdminByEmail(context.Background(), email)
+	admin, err := database.Queries.GetAdminByEmail(ctx, email)
 	if err != nil {
 		return "", errors.New("invalid email or password")
 	}
@@ -25,7 +25,6 @@ func AdminLogin(email, password string) (string, error) {
 		return "", errors.New("invalid email or password")
 	}
 
-	// Use the role stored in the database (ADMIN or SUPER_ADMIN)
 	token, err := utils.GenerateToken(
 		admin.ID,
 		string(admin.Role),

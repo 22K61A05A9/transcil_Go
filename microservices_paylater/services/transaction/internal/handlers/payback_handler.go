@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
+	"Paylater/services/transaction/internal/clients"
 	"Paylater/services/transaction/internal/db/sqlc"
 	"Paylater/services/transaction/internal/models"
 	"Paylater/services/transaction/internal/services"
@@ -42,9 +44,13 @@ func CreatePayback(c *gin.Context) {
 		Amount: req.Amount,
 	}
 
-	err := services.ProcessPayback(transaction)
+	err := services.ProcessPayback(c.Request.Context(), c.GetHeader("Authorization"), transaction)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		status := http.StatusBadRequest
+		if errors.Is(err, clients.ErrUpstreamUnavailable) {
+			status = http.StatusBadGateway
+		}
+		c.JSON(status, gin.H{
 			"error": err.Error(),
 		})
 		return

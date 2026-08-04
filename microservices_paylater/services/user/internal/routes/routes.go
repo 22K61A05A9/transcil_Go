@@ -22,6 +22,14 @@ func SetupRoutes(router *gin.Engine) {
 		middleware.UserMiddleware(),
 		handlers.UpdateUser)
 
+	// S2S: used by Transaction Service to update due after purchase/payback.
+	// Not registered on the API Gateway.
+	router.PUT("/users/:id/current-due",
+		middleware.InternalTokenMiddleware(),
+		middleware.AuthMiddleware(),
+		middleware.UserMiddleware(),
+		handlers.UpdateCurrentDue)
+
 	router.GET("/users",
 		middleware.AuthMiddleware(),
 		middleware.AdminMiddleware(),

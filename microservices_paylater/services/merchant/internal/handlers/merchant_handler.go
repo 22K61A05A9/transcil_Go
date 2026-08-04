@@ -35,7 +35,7 @@ func CreateMerchant(c *gin.Context) {
 		CommissionPercentage: req.CommissionPercentage,
 	}
 
-	err := services.CreateMerchant(merchant)
+	err := services.CreateMerchant(c.Request.Context(), merchant)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -51,7 +51,7 @@ func CreateMerchant(c *gin.Context) {
 // Get All Merchants
 func GetMerchants(c *gin.Context) {
 
-	merchants, err := services.GetMerchants()
+	merchants, err := services.GetMerchants(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -86,7 +86,7 @@ func GetMerchantByID(c *gin.Context) {
 		return
 	}
 
-	merchant, err := services.GetMerchantByID(int32(id))
+	merchant, err := services.GetMerchantByID(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -134,7 +134,7 @@ func UpdateMerchant(c *gin.Context) {
 		},
 	}
 
-	err = services.UpdateMerchant(merchant)
+	err = services.UpdateMerchant(c.Request.Context(), merchant)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -169,7 +169,7 @@ func UpdateCommission(c *gin.Context) {
 
 	merchant.ID = int32(id)
 
-	err = services.UpdateCommission(merchant)
+	err = services.UpdateCommission(c.Request.Context(), merchant)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -193,7 +193,7 @@ func DeleteMerchant(c *gin.Context) {
 		return
 	}
 
-	err = services.DeleteMerchant(int32(id))
+	err = services.DeleteMerchant(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

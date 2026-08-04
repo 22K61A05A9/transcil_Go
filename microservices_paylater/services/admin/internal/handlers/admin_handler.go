@@ -45,7 +45,7 @@ func CreateAdmin(c *gin.Context) {
 		Role:      role,
 	}
 
-	err = services.CreateAdmin(admin)
+	err = services.CreateAdmin(c.Request.Context(), admin)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -61,7 +61,7 @@ func CreateAdmin(c *gin.Context) {
 // Get All Admins
 func GetAdmins(c *gin.Context) {
 
-	admins, err := services.GetAdmins()
+	admins, err := services.GetAdmins(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -94,7 +94,7 @@ func GetAdminByID(c *gin.Context) {
 		return
 	}
 
-	admin, err := services.GetAdminByID(int32(id))
+	admin, err := services.GetAdminByID(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -123,7 +123,7 @@ func DeleteAdmin(c *gin.Context) {
 		return
 	}
 
-	err = services.DeleteAdmin(int32(id))
+	err = services.DeleteAdmin(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

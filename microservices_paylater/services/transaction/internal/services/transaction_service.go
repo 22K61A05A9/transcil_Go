@@ -5,24 +5,24 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 
+	"Paylater/services/transaction/internal/clients"
 	"Paylater/services/transaction/internal/database"
 	"Paylater/services/transaction/internal/db/sqlc"
 )
 
-func ProcessTransaction(transaction sqlc.CreateTransactionParams) error {
-
-	ctx := context.Background()
+func ProcessTransaction(ctx context.Context, authHeader string, transaction sqlc.CreateTransactionParams) error {
 
 	transaction.TransactionType = sqlc.TransactionsTransactionTypePURCHASE
 
-	user, err := database.Queries.GetUserByID(ctx, transaction.UserID)
+	user, err := clients.User.GetUserByID(ctx, authHeader, transaction.UserID)
 	if err != nil {
 		return err
 	}
 
-	merchant, err := database.Queries.GetMerchantByID(ctx, transaction.MerchantID.Int32)
+	merchant, err := clients.Merchant.GetMerchantByID(ctx, authHeader, transaction.MerchantID.Int32)
 	if err != nil {
 		return err
 	}
@@ -58,58 +58,39 @@ func ProcessTransaction(transaction sqlc.CreateTransactionParams) error {
 	transaction.Commission = fmt.Sprintf("%.2f", commission)
 	transaction.CommissionPercentage = merchant.CommissionPercentage
 
-	newCurrentDue := currentDue + amount
+	newCurrentDue := fmt.Sprintf("%.2f", currentDue+amount)
 
-	err = database.Queries.UpdateCurrentDue(
-		ctx,
-		sqlc.UpdateCurrentDueParams{
-			ID:         transaction.UserID,
-			CurrentDue: fmt.Sprintf("%.2f", newCurrentDue),
-		},
-	)
-	if err != nil {
+	// Local DB write first, then User Service due update (same order as payback).
+	if err := database.Queries.CreateTransaction(ctx, transaction); err != nil {
 		return err
 	}
 
-	return database.Queries.CreateTransaction(ctx, transaction)
-}
-
-func GetTransactions() ([]sqlc.Transaction, error) {
-
-	transactions, err := database.Queries.GetAllTransactions(context.Background())
-	if err != nil {
-		return nil, err
+	if err := clients.User.UpdateCurrentDue(ctx, authHeader, transaction.UserID, newCurrentDue); err != nil {
+		log.Printf(
+			"MANUAL RECONCILIATION REQUIRED: purchase transaction persisted but user current_due update failed; user_id=%d amount=%s expected_current_due=%s err=%v",
+			transaction.UserID,
+			transaction.Amount,
+			newCurrentDue,
+			err,
+		)
+		return err
 	}
 
-	return transactions, nil
+	return nil
 }
 
-func GetTransactionByID(id int32) (sqlc.Transaction, error) {
-
-	transaction, err := database.Queries.GetTransactionByID(context.Background(), id)
-	if err != nil {
-		return sqlc.Transaction{}, err
-	}
-
-	return transaction, nil
+func GetTransactions(ctx context.Context) ([]sqlc.Transaction, error) {
+	return database.Queries.GetAllTransactions(ctx)
 }
 
-func GetTransactionsByUser(id int32) ([]sqlc.Transaction, error) {
-
-	transactions, err := database.Queries.GetTransactionsByUser(context.Background(), id)
-	if err != nil {
-		return nil, err
-	}
-
-	return transactions, nil
+func GetTransactionByID(ctx context.Context, id int32) (sqlc.Transaction, error) {
+	return database.Queries.GetTransactionByID(ctx, id)
 }
 
-func GetTransactionsByMerchant(id sql.NullInt32) ([]sqlc.Transaction, error) {
+func GetTransactionsByUser(ctx context.Context, id int32) ([]sqlc.Transaction, error) {
+	return database.Queries.GetTransactionsByUser(ctx, id)
+}
 
-	transactions, err := database.Queries.GetTransactionsByMerchant(context.Background(), id)
-	if err != nil {
-		return nil, err
-	}
-
-	return transactions, nil
+func GetTransactionsByMerchant(ctx context.Context, id sql.NullInt32) ([]sqlc.Transaction, error) {
+	return database.Queries.GetTransactionsByMerchant(ctx, id)
 }

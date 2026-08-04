@@ -9,3 +9,7 @@ type CreateUserRequest struct {
 type UpdateUserRequest struct {
 	UserName string `json:"user_name" binding:"required"`
 }
+
+type UpdateCurrentDueRequest struct {
+	CurrentDue string `json:"current_due" binding:"required"`
+}

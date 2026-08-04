@@ -20,7 +20,7 @@ func AdminLogin(c *gin.Context) {
 		return
 	}
 
-	token, err := services.AdminLogin(req.Email, req.Password)
+	token, err := services.AdminLogin(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),

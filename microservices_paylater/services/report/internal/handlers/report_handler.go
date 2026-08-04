@@ -1,15 +1,23 @@
 package handlers
 
 import (
-	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 
-	"Paylater/services/report/internal/models"
+	"Paylater/services/report/internal/clients"
 	"Paylater/services/report/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
+
+func writeServiceError(c *gin.Context, err error, fallbackStatus int) {
+	status := fallbackStatus
+	if errors.Is(err, clients.ErrUpstreamUnavailable) {
+		status = http.StatusBadGateway
+	}
+	c.JSON(status, gin.H{"error": err.Error()})
+}
 
 func GetMerchantFeeCollected(c *gin.Context) {
 
@@ -22,15 +30,12 @@ func GetMerchantFeeCollected(c *gin.Context) {
 	}
 
 	totalFee, err := services.GetMerchantFeeCollected(
-		sql.NullInt32{
-			Int32: int32(merchantID),
-			Valid: true,
-		},
+		c.Request.Context(),
+		c.GetHeader("Authorization"),
+		int32(merchantID),
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		writeServiceError(c, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -49,11 +54,13 @@ func GetUserDue(c *gin.Context) {
 		return
 	}
 
-	due, err := services.GetUserDue(int32(userID))
+	due, err := services.GetUserDue(
+		c.Request.Context(),
+		c.GetHeader("Authorization"),
+		int32(userID),
+	)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
-		})
+		writeServiceError(c, err, http.StatusNotFound)
 		return
 	}
 
@@ -64,23 +71,13 @@ func GetUserDue(c *gin.Context) {
 
 func GetUsersReachedCreditLimit(c *gin.Context) {
 
-	users, err := services.GetUsersReachedCreditLimit()
+	response, err := services.GetUsersReachedCreditLimit(
+		c.Request.Context(),
+		c.GetHeader("Authorization"),
+	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		writeServiceError(c, err, http.StatusInternalServerError)
 		return
-	}
-
-	var response []models.UserResponse
-
-	for _, user := range users {
-		response = append(response, models.UserResponse{
-			ID:          user.ID,
-			UserName:    user.UserName,
-			CreditLimit: user.CreditLimit,
-			CurrentDue:  user.CurrentDue,
-		})
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -88,11 +85,12 @@ func GetUsersReachedCreditLimit(c *gin.Context) {
 
 func GetTotalUserDue(c *gin.Context) {
 
-	totalDue, err := services.GetTotalUserDue()
+	totalDue, err := services.GetTotalUserDue(
+		c.Request.Context(),
+		c.GetHeader("Authorization"),
+	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		writeServiceError(c, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -103,23 +101,13 @@ func GetTotalUserDue(c *gin.Context) {
 
 func GetCustomersWithDue(c *gin.Context) {
 
-	users, err := services.GetCustomersWithDue()
+	response, err := services.GetCustomersWithDue(
+		c.Request.Context(),
+		c.GetHeader("Authorization"),
+	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		writeServiceError(c, err, http.StatusInternalServerError)
 		return
-	}
-
-	var response []models.UserResponse
-
-	for _, user := range users {
-		response = append(response, models.UserResponse{
-			ID:          user.ID,
-			UserName:    user.UserName,
-			CreditLimit: user.CreditLimit,
-			CurrentDue:  user.CurrentDue,
-		})
 	}
 
 	c.JSON(http.StatusOK, response)

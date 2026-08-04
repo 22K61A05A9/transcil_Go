@@ -52,15 +52,6 @@ func (ns NullTransactionsTransactionType) Value() (driver.Value, error) {
 	return string(ns.TransactionsTransactionType), nil
 }
 
-type Merchant struct {
-	ID                   int32          `json:"id"`
-	MerchantName         string         `json:"merchant_name"`
-	Email                string         `json:"email"`
-	Password             string         `json:"password"`
-	PhoneNumber          sql.NullString `json:"phone_number"`
-	CommissionPercentage string         `json:"commission_percentage"`
-}
-
 type Transaction struct {
 	ID                   int32                       `json:"id"`
 	UserID               int32                       `json:"user_id"`
@@ -69,13 +60,4 @@ type Transaction struct {
 	Amount               string                      `json:"amount"`
 	Commission           string                      `json:"commission"`
 	CommissionPercentage string                      `json:"commission_percentage"`
-}
-
-type User struct {
-	ID          int32  `json:"id"`
-	UserName    string `json:"user_name"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	CreditLimit string `json:"credit_limit"`
-	CurrentDue  string `json:"current_due"`
 }

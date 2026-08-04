@@ -18,6 +18,13 @@ func SetupMerchantRoutes(router *gin.Engine) {
 		middleware.MerchantMiddleware(),
 		handlers.GetMerchantByID)
 
+	// S2S: Transaction Service reads merchant commission with a user JWT.
+	// Not registered on the API Gateway; does not change public /merchants/:id auth.
+	router.GET("/internal/merchants/:id",
+		middleware.InternalTokenMiddleware(),
+		middleware.AuthMiddleware(),
+		handlers.GetMerchantByID)
+
 	// Merchant management (same middleware stack as monolith)
 	router.POST("/merchants",
 		middleware.AuthMiddleware(),

@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 
+	"Paylater/services/transaction/internal/clients"
 	"Paylater/services/transaction/internal/db/sqlc"
 	"Paylater/services/transaction/internal/models"
 	"Paylater/services/transaction/internal/services"
@@ -48,9 +50,13 @@ func CreateTransaction(c *gin.Context) {
 		Amount: req.Amount,
 	}
 
-	err := services.ProcessTransaction(transaction)
+	err := services.ProcessTransaction(c.Request.Context(), c.GetHeader("Authorization"), transaction)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		status := http.StatusBadRequest
+		if errors.Is(err, clients.ErrUpstreamUnavailable) {
+			status = http.StatusBadGateway
+		}
+		c.JSON(status, gin.H{
 			"error": err.Error(),
 		})
 		return
@@ -63,7 +69,7 @@ func CreateTransaction(c *gin.Context) {
 
 func GetTransactions(c *gin.Context) {
 
-	transactions, err := services.GetTransactions()
+	transactions, err := services.GetTransactions(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -84,7 +90,7 @@ func GetTransactionByID(c *gin.Context) {
 		return
 	}
 
-	transaction, err := services.GetTransactionByID(int32(id))
+	transaction, err := services.GetTransactionByID(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "Transaction not found",
@@ -105,7 +111,7 @@ func GetTransactionsByUser(c *gin.Context) {
 		return
 	}
 
-	transactions, err := services.GetTransactionsByUser(int32(userID))
+	transactions, err := services.GetTransactionsByUser(c.Request.Context(), int32(userID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -127,6 +133,7 @@ func GetTransactionsByMerchant(c *gin.Context) {
 	}
 
 	transactions, err := services.GetTransactionsByMerchant(
+		c.Request.Context(),
 		sql.NullInt32{
 			Int32: int32(merchantID),
 			Valid: true,

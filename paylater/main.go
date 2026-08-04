@@ -20,7 +20,11 @@ func main(){
 	}
 	database.DB=db
     //sqlc query object
-	database.Queries = sqlc.New(db)
+	/*sqlc.New(db)  - It creates an instance of the 
+	generated Queries struct and binds it to the database connection. 
+	After that, all generated query methods 
+	can execute SQL using the same database connection.
+	database.Queries = sqlc.New(db)*/
 
 	router := gin.Default()
 

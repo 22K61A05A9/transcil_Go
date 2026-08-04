@@ -1,0 +1,614 @@
+{
+  "info": {
+    "_postman_id": "cdd61735-b91f-4084-8120-674c7eb04185",
+    "name": "microservices paylater",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "56569150",
+    "_collection_link": "https://go.postman.co/collection/56569150-cdd61735-b91f-4084-8120-674c7eb04185?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "admin login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"admin@example.com\",\r\n  \"password\": \"admin123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9093/admin/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9093",
+          "path": [
+            "admin",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get admins",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{supabase_service_role_api_key_04xn}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:9093/admins",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9093",
+          "path": [
+            "admins"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "create admin",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_secret_04xn}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"admin_name\": \"Test Admin\",\r\n  \"email\": \"testadmin@gmail.com\",\r\n  \"password\": \"123456\",\r\n  \"role\": \"ADMIN\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9093/admins",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9093",
+          "path": [
+            "admins"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "create merchant",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_secret_04xn}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"merchant_name\": \"flipkart\",\r\n  \"email\": \"flipkart@gmail.com\",\r\n  \"password\": \"123456\",\r\n  \"phone_number\": \"9876543210\",\r\n  \"commission_percentage\": \"5\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9094/merchants",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9094",
+          "path": [
+            "merchants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "merchant login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"flipkart@gmail.com\",\r\n  \"password\": \"123456\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9094/merchant/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9094",
+          "path": [
+            "merchant",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "user registration",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"user_name\":\"Hari\",\r\n    \"email\":\"hari11@gmail.com\",\r\n    \"password\":\"123456\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "user login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\":\"hari11@gmail.com\",\r\n    \"password\":\"123456\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/user/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "user",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "admin login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\":\"admin@example.com\",\r\n    \"password\":\"admin123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/admin/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "admin",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "merchant login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\":\"flipkart@gmail.com\",\r\n    \"password\":\"123456\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/merchant/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchant",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "user list",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{json_web_token_0po8}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "admin list",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{json_web_token_0po8}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/admins",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "admins"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Merchant list",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{json_web_token_0po8}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/merchants",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Transaction",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{json_web_token_0po8}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_1dj3}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"user_id\":9,\r\n    \"merchant_id\":4,\r\n    \"amount\":\"500\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/transactions",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "transactions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Transaction History",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{json_web_token_0po8}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_1dj3}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:9090/transactions/user/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "transactions",
+            "user",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Payback",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{supabase_service_role_api_key_08ri}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"amount\":\"200\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/payback",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "payback"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "user due",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_08ri}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:9090/user/9/due",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "user",
+            "9",
+            "due"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "total due",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{supabase_service_role_api_key_0po8}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:9090/total-due",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "total-due"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{supabase_service_role_api_key_0po8}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/customers-with-due",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "customers-with-due"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "supabase_service_role_api_key_04xn",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_1byb",
+      "secret": true
+    },
+    {
+      "key": "auth_secret_04xn",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0po8",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_1dj3",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_0ckl",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_08ri",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_0114",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_08ri",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_0po8",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_0il4",
+      "secret": true
+    }
+  ]
+}

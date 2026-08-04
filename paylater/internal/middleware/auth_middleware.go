@@ -3,9 +3,7 @@ package middleware
 import (
 	"net/http"
 	"strings"
-
 	"Paylater/internal/utils"
-
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -64,7 +62,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Store values in Gin context
 		c.Set("id", claims["id"])
 		c.Set("role", claims["role"])
-
+ 
 		c.Next()
 	}
 }

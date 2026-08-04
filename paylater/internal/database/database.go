@@ -20,7 +20,7 @@ func NewDB() (*sql.DB, error) {
 	host := os.Getenv("DB_HOST")
 	port := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
-
+    //dsn = data source name
 	dsn := fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		user,
@@ -34,7 +34,9 @@ func NewDB() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
+    /*why ping? To verify that the database 
+	server is reachable and accepting 
+	connections before starting the application.*/
 	if err = db.Ping(); err != nil {
 		return nil, err
 	}

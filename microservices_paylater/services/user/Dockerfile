@@ -12,7 +12,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o user-service ./cmd
 
 # ---------- Runtime Stage ----------
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim 
 
 WORKDIR /app
 

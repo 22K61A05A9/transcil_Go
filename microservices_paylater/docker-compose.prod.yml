@@ -1,0 +1,109 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: paylater-mysql
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: paylater
+      MYSQL_USER: gouser
+      MYSQL_PASSWORD: Go123
+
+    ports:
+      - "3307:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  user:
+    image: haripriyanka99/paylater-user:v1
+    container_name: paylater-user
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "9091:9091"
+
+  admin:
+    image: haripriyanka99/paylater-admin:v1
+    container_name: paylater-admin
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "9093:9093"
+
+  merchant:
+    image: haripriyanka99/paylater-merchant:v1
+    container_name: paylater-merchant
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "9094:9094"
+
+  transaction:
+    image: haripriyanka99/paylater-transaction:v1
+    container_name: paylater-transaction
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+      user:
+        condition: service_started
+      merchant:
+        condition: service_started
+    ports:
+      - "9092:9092"
+
+  report:
+    image: haripriyanka99/paylater-report:v1
+    container_name: paylater-report
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+      user:
+        condition: service_started
+      transaction:
+        condition: service_started
+    ports:
+      - "9095:9095"
+
+  gateway:
+    image: haripriyanka99/paylater-gateway:v1
+    container_name: paylater-gateway
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    depends_on:
+      - user
+      - admin
+      - merchant
+      - transaction
+      - report
+    ports:
+      - "9090:9090"
+
+volumes:
+  mysql_data:

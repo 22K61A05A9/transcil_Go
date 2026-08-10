@@ -12,8 +12,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Create Merchant
-func CreateMerchant(c *gin.Context) {
+// Handler exposes HTTP handlers with an injected merchant Service.
+type Handler struct {
+	svc *services.Service
+}
+
+// New creates a Handler with the given Service dependency.
+func New(svc *services.Service) *Handler {
+	return &Handler{svc: svc}
+}
+
+func (h *Handler) CreateMerchant(c *gin.Context) {
 
 	var req models.CreateMerchantRequest
 
@@ -35,7 +44,7 @@ func CreateMerchant(c *gin.Context) {
 		CommissionPercentage: req.CommissionPercentage,
 	}
 
-	err := services.CreateMerchant(c.Request.Context(), merchant)
+	err := h.svc.CreateMerchant(c.Request.Context(), merchant)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -48,10 +57,9 @@ func CreateMerchant(c *gin.Context) {
 	})
 }
 
-// Get All Merchants
-func GetMerchants(c *gin.Context) {
+func (h *Handler) GetMerchants(c *gin.Context) {
 
-	merchants, err := services.GetMerchants(c.Request.Context())
+	merchants, err := h.svc.GetMerchants(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -75,8 +83,7 @@ func GetMerchants(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// Get Merchant By ID
-func GetMerchantByID(c *gin.Context) {
+func (h *Handler) GetMerchantByID(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -86,7 +93,7 @@ func GetMerchantByID(c *gin.Context) {
 		return
 	}
 
-	merchant, err := services.GetMerchantByID(c.Request.Context(), int32(id))
+	merchant, err := h.svc.GetMerchantByID(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -105,8 +112,7 @@ func GetMerchantByID(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// Update Merchant
-func UpdateMerchant(c *gin.Context) {
+func (h *Handler) UpdateMerchant(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -134,7 +140,7 @@ func UpdateMerchant(c *gin.Context) {
 		},
 	}
 
-	err = services.UpdateMerchant(c.Request.Context(), merchant)
+	err = h.svc.UpdateMerchant(c.Request.Context(), merchant)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -147,8 +153,7 @@ func UpdateMerchant(c *gin.Context) {
 	})
 }
 
-// Update Commission
-func UpdateCommission(c *gin.Context) {
+func (h *Handler) UpdateCommission(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -169,7 +174,7 @@ func UpdateCommission(c *gin.Context) {
 
 	merchant.ID = int32(id)
 
-	err = services.UpdateCommission(c.Request.Context(), merchant)
+	err = h.svc.UpdateCommission(c.Request.Context(), merchant)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -182,8 +187,7 @@ func UpdateCommission(c *gin.Context) {
 	})
 }
 
-// Delete Merchant
-func DeleteMerchant(c *gin.Context) {
+func (h *Handler) DeleteMerchant(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -193,7 +197,7 @@ func DeleteMerchant(c *gin.Context) {
 		return
 	}
 
-	err = services.DeleteMerchant(c.Request.Context(), int32(id))
+	err = h.svc.DeleteMerchant(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

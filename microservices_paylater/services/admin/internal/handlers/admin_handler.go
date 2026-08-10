@@ -11,8 +11,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Create Admin
-func CreateAdmin(c *gin.Context) {
+// Handler exposes HTTP handlers with an injected admin Service.
+type Handler struct {
+	svc *services.Service
+}
+
+// New creates a Handler with the given Service dependency.
+func New(svc *services.Service) *Handler {
+	return &Handler{svc: svc}
+}
+
+func (h *Handler) CreateAdmin(c *gin.Context) {
 
 	var req models.CreateAdminRequest
 
@@ -45,7 +54,7 @@ func CreateAdmin(c *gin.Context) {
 		Role:      role,
 	}
 
-	err = services.CreateAdmin(c.Request.Context(), admin)
+	err = h.svc.CreateAdmin(c.Request.Context(), admin)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -58,10 +67,9 @@ func CreateAdmin(c *gin.Context) {
 	})
 }
 
-// Get All Admins
-func GetAdmins(c *gin.Context) {
+func (h *Handler) GetAdmins(c *gin.Context) {
 
-	admins, err := services.GetAdmins(c.Request.Context())
+	admins, err := h.svc.GetAdmins(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -83,8 +91,7 @@ func GetAdmins(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// Get Admin By ID
-func GetAdminByID(c *gin.Context) {
+func (h *Handler) GetAdminByID(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -94,7 +101,7 @@ func GetAdminByID(c *gin.Context) {
 		return
 	}
 
-	admin, err := services.GetAdminByID(c.Request.Context(), int32(id))
+	admin, err := h.svc.GetAdminByID(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -112,8 +119,7 @@ func GetAdminByID(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// Delete Admin
-func DeleteAdmin(c *gin.Context) {
+func (h *Handler) DeleteAdmin(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -123,7 +129,7 @@ func DeleteAdmin(c *gin.Context) {
 		return
 	}
 
-	err = services.DeleteAdmin(c.Request.Context(), int32(id))
+	err = h.svc.DeleteAdmin(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

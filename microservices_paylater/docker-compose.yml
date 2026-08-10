@@ -23,7 +23,8 @@ services:
 
   user:
     build:
-      context: ./services/user
+      context: .
+      dockerfile: services/user/Dockerfile
     container_name: paylater-user
     restart: unless-stopped
     env_file:
@@ -36,7 +37,8 @@ services:
 
   merchant:
     build:
-      context: ./services/merchant
+      context: .
+      dockerfile: services/merchant/Dockerfile
     container_name: paylater-merchant
     restart: unless-stopped
     env_file:
@@ -49,7 +51,8 @@ services:
 
   transaction:
     build:
-      context: ./services/transaction
+      context: .
+      dockerfile: services/transaction/Dockerfile
     container_name: paylater-transaction
     restart: unless-stopped
     env_file:
@@ -66,7 +69,8 @@ services:
 
   admin:
     build:
-      context: ./services/admin
+      context: .
+      dockerfile: services/admin/Dockerfile
     container_name: paylater-admin
     restart: unless-stopped
     env_file:
@@ -79,7 +83,8 @@ services:
 
   report:
     build:
-      context: ./services/report
+      context: .
+      dockerfile: services/report/Dockerfile
     container_name: paylater-report
     restart: unless-stopped
     env_file:
@@ -94,7 +99,8 @@ services:
 
   gateway:
     build:
-      context: ./services/gateway
+      context: .
+      dockerfile: services/gateway/Dockerfile
     container_name: paylater-gateway
     restart: unless-stopped
     env_file:

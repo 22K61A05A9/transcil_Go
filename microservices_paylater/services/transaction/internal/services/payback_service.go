@@ -8,16 +8,14 @@ import (
 	"log"
 	"strconv"
 
-	"Paylater/services/transaction/internal/clients"
-	"Paylater/services/transaction/internal/database"
 	"Paylater/services/transaction/internal/db/sqlc"
 )
 
-func ProcessPayback(ctx context.Context, authHeader string, transaction sqlc.CreateTransactionParams) error {
+func (s *Service) ProcessPayback(ctx context.Context, authHeader string, transaction sqlc.CreateTransactionParams) error {
 
 	transaction.TransactionType = sqlc.TransactionsTransactionTypePAYBACK
 
-	user, err := clients.User.GetUserByID(ctx, authHeader, transaction.UserID)
+	user, err := s.users.GetUserByID(ctx, authHeader, transaction.UserID)
 	if err != nil {
 		return err
 	}
@@ -36,6 +34,7 @@ func ProcessPayback(ctx context.Context, authHeader string, transaction sqlc.Cre
 		return errors.New("payment exceeds current due")
 	}
 
+	originalDue := user.CurrentDue
 	newCurrentDue := fmt.Sprintf("%.2f", currentDue-amount)
 
 	transaction.MerchantID = sql.NullInt32{}
@@ -43,17 +42,29 @@ func ProcessPayback(ctx context.Context, authHeader string, transaction sqlc.Cre
 	transaction.Commission = "0.00"
 	transaction.CommissionPercentage = "0.00"
 
-	// Local DB write first, then User Service due update.
-	if err := database.Queries.CreateTransaction(ctx, transaction); err != nil {
+	// User due first, then local transaction. If local insert fails, roll due back.
+	if err := s.users.UpdateCurrentDue(ctx, authHeader, transaction.UserID, newCurrentDue); err != nil {
 		return err
 	}
 
-	if err := clients.User.UpdateCurrentDue(ctx, authHeader, transaction.UserID, newCurrentDue); err != nil {
+	if err := s.writer.CreateTransaction(ctx, transaction); err != nil {
+		if compErr := s.users.UpdateCurrentDue(ctx, authHeader, transaction.UserID, originalDue); compErr != nil {
+			log.Printf(
+				"MANUAL RECONCILIATION REQUIRED: payback due updated but transaction insert failed and due rollback failed; user_id=%d amount=%s original_due=%s updated_due=%s insert_err=%v rollback_err=%v",
+				transaction.UserID,
+				transaction.Amount,
+				originalDue,
+				newCurrentDue,
+				err,
+				compErr,
+			)
+			return fmt.Errorf("payback persist failed after due update; due rollback also failed: %w", err)
+		}
 		log.Printf(
-			"MANUAL RECONCILIATION REQUIRED: payback transaction persisted but user current_due update failed; user_id=%d amount=%s expected_current_due=%s err=%v",
+			"compensated payback: rolled back user current_due after transaction insert failure; user_id=%d amount=%s restored_due=%s insert_err=%v",
 			transaction.UserID,
 			transaction.Amount,
-			newCurrentDue,
+			originalDue,
 			err,
 		)
 		return err

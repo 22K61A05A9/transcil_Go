@@ -5,13 +5,22 @@ import (
 	"errors"
 	"strconv"
 
-	"Paylater/services/merchant/internal/database"
 	"Paylater/services/merchant/internal/db/sqlc"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateMerchant(ctx context.Context, merchant sqlc.CreateMerchantParams) error {
+// Service holds database dependencies for the merchant domain.
+type Service struct {
+	queries *sqlc.Queries
+}
+
+// New creates a merchant Service with an injected sqlc Queries instance.
+func New(queries *sqlc.Queries) *Service {
+	return &Service{queries: queries}
+}
+
+func (s *Service) CreateMerchant(ctx context.Context, merchant sqlc.CreateMerchantParams) error {
 
 	// Validate Commission Percentage (Allowed only between 3% and 10%)
 	commission, err := strconv.ParseFloat(merchant.CommissionPercentage, 64)
@@ -33,25 +42,25 @@ func CreateMerchant(ctx context.Context, merchant sqlc.CreateMerchantParams) err
 
 	merchant.Password = string(hashedPassword)
 
-	return database.Queries.CreateMerchant(ctx, merchant)
+	return s.queries.CreateMerchant(ctx, merchant)
 }
 
-func GetMerchants(ctx context.Context) ([]sqlc.Merchant, error) {
-	return database.Queries.GetAllMerchants(ctx)
+func (s *Service) GetMerchants(ctx context.Context) ([]sqlc.Merchant, error) {
+	return s.queries.GetAllMerchants(ctx)
 }
 
-func GetMerchantByID(ctx context.Context, id int32) (sqlc.Merchant, error) {
-	return database.Queries.GetMerchantByID(ctx, id)
+func (s *Service) GetMerchantByID(ctx context.Context, id int32) (sqlc.Merchant, error) {
+	return s.queries.GetMerchantByID(ctx, id)
 }
 
-func UpdateMerchant(ctx context.Context, merchant sqlc.UpdateMerchantParams) error {
-	return database.Queries.UpdateMerchant(ctx, merchant)
+func (s *Service) UpdateMerchant(ctx context.Context, merchant sqlc.UpdateMerchantParams) error {
+	return s.queries.UpdateMerchant(ctx, merchant)
 }
 
-func UpdateCommission(ctx context.Context, merchant sqlc.UpdateCommissionParams) error {
-	return database.Queries.UpdateCommission(ctx, merchant)
+func (s *Service) UpdateCommission(ctx context.Context, merchant sqlc.UpdateCommissionParams) error {
+	return s.queries.UpdateCommission(ctx, merchant)
 }
 
-func DeleteMerchant(ctx context.Context, id int32) error {
-	return database.Queries.DeleteMerchant(ctx, id)
+func (s *Service) DeleteMerchant(ctx context.Context, id int32) error {
+	return s.queries.DeleteMerchant(ctx, id)
 }

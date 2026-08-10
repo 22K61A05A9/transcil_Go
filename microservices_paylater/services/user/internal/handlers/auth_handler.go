@@ -4,12 +4,11 @@ import (
 	"net/http"
 
 	"Paylater/services/user/internal/models"
-	"Paylater/services/user/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-func UserLogin(c *gin.Context) {
+func (h *Handler) UserLogin(c *gin.Context) {
 
 	var req models.LoginRequest
 
@@ -20,7 +19,7 @@ func UserLogin(c *gin.Context) {
 		return
 	}
 
-	token, err := services.UserLogin(c.Request.Context(), req.Email, req.Password)
+	token, err := h.svc.UserLogin(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),

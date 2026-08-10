@@ -9,6 +9,8 @@ import (
 
 func SetupRoutes(router *gin.Engine) {
 
+	router.GET("/health", handlers.Health)
+
 	router.GET("/user/:user_id/due",
 		middleware.AuthMiddleware(),
 		middleware.UserMiddleware(),

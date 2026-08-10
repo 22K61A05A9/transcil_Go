@@ -7,33 +7,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(router *gin.Engine) {
+func SetupRoutes(router *gin.Engine, h *handlers.Handler) {
+
+	router.GET("/health", handlers.Health)
 
 	router.POST("/transactions",
 		middleware.AuthMiddleware(),
-		handlers.CreateTransaction)
+		h.CreateTransaction)
 
 	router.GET("/transactions/user/:user_id",
 		middleware.AuthMiddleware(),
 		middleware.UserMiddleware(),
-		handlers.GetTransactionsByUser)
+		h.GetTransactionsByUser)
 
 	router.POST("/payback",
 		middleware.AuthMiddleware(),
-		handlers.CreatePayback)
+		h.CreatePayback)
 
 	router.GET("/transactions",
 		middleware.AuthMiddleware(),
 		middleware.AdminMiddleware(),
-		handlers.GetTransactions)
+		h.GetTransactions)
 
 	router.GET("/transactions/:id",
 		middleware.AuthMiddleware(),
 		middleware.AdminMiddleware(),
-		handlers.GetTransactionByID)
+		h.GetTransactionByID)
 
 	router.GET("/transactions/merchant/:merchant_id",
 		middleware.AuthMiddleware(),
 		middleware.AdminMiddleware(),
-		handlers.GetTransactionsByMerchant)
+		h.GetTransactionsByMerchant)
 }

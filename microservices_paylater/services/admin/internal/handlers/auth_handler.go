@@ -4,12 +4,11 @@ import (
 	"net/http"
 
 	"Paylater/services/admin/internal/models"
-	"Paylater/services/admin/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-func AdminLogin(c *gin.Context) {
+func (h *Handler) AdminLogin(c *gin.Context) {
 
 	var req models.LoginRequest
 
@@ -20,7 +19,7 @@ func AdminLogin(c *gin.Context) {
 		return
 	}
 
-	token, err := services.AdminLogin(c.Request.Context(), req.Email, req.Password)
+	token, err := h.svc.AdminLogin(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),

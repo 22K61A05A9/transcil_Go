@@ -11,7 +11,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateUser(c *gin.Context) {
+// Handler exposes HTTP handlers with an injected user Service.
+type Handler struct {
+	svc *services.Service
+}
+
+// New creates a Handler with the given Service dependency.
+func New(svc *services.Service) *Handler {
+	return &Handler{svc: svc}
+}
+
+func (h *Handler) CreateUser(c *gin.Context) {
 
 	var req models.CreateUserRequest
 
@@ -29,7 +39,7 @@ func CreateUser(c *gin.Context) {
 		Password: req.Password,
 	}
 
-	err = services.CreateUser(c.Request.Context(), user)
+	err = h.svc.CreateUser(c.Request.Context(), user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -42,9 +52,9 @@ func CreateUser(c *gin.Context) {
 	})
 }
 
-func GetUsers(c *gin.Context) {
+func (h *Handler) GetUsers(c *gin.Context) {
 
-	users, err := services.GetUsers(c.Request.Context())
+	users, err := h.svc.GetUsers(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -66,7 +76,7 @@ func GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func GetUserByID(c *gin.Context) {
+func (h *Handler) GetUserByID(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -76,7 +86,7 @@ func GetUserByID(c *gin.Context) {
 		return
 	}
 
-	user, err := services.GetUserByID(c.Request.Context(), int32(id))
+	user, err := h.svc.GetUserByID(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -94,7 +104,7 @@ func GetUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func UpdateUser(c *gin.Context) {
+func (h *Handler) UpdateUser(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -119,7 +129,7 @@ func UpdateUser(c *gin.Context) {
 		UserName: req.UserName,
 	}
 
-	err = services.UpdateUser(c.Request.Context(), user)
+	err = h.svc.UpdateUser(c.Request.Context(), user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -132,7 +142,7 @@ func UpdateUser(c *gin.Context) {
 	})
 }
 
-func DeleteUser(c *gin.Context) {
+func (h *Handler) DeleteUser(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -142,7 +152,7 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	err = services.DeleteUser(c.Request.Context(), int32(id))
+	err = h.svc.DeleteUser(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -155,7 +165,7 @@ func DeleteUser(c *gin.Context) {
 	})
 }
 
-func UpdateCurrentDue(c *gin.Context) {
+func (h *Handler) UpdateCurrentDue(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -173,7 +183,7 @@ func UpdateCurrentDue(c *gin.Context) {
 		return
 	}
 
-	err = services.UpdateCurrentDue(c.Request.Context(), sqlc.UpdateCurrentDueParams{
+	err = h.svc.UpdateCurrentDue(c.Request.Context(), sqlc.UpdateCurrentDueParams{
 		ID:         int32(id),
 		CurrentDue: req.CurrentDue,
 	})

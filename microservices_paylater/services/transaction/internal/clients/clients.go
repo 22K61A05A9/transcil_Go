@@ -2,7 +2,7 @@ package clients
 
 import "Paylater/services/transaction/internal/config"
 
-// Package-level clients used by transaction/payback services (same pattern as database.Queries).
+// Package-level clients used by transaction/payback services.
 var (
 	User     *UserClient
 	Merchant *MerchantClient

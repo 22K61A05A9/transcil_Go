@@ -7,29 +7,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupAdminRoutes(router *gin.Engine) {
+func SetupAdminRoutes(router *gin.Engine, h *handlers.Handler) {
+
+	router.GET("/health", handlers.Health)
 
 	// Public
-	router.POST("/admin/login", handlers.AdminLogin)
+	router.POST("/admin/login", h.AdminLogin)
 
-	// Admin management
+	// Admin management — create is SUPER_ADMIN only (JWT role, not request body)
 	router.POST("/admins",
 		middleware.AuthMiddleware(),
-		middleware.AdminMiddleware(),
-		handlers.CreateAdmin)
+		middleware.SuperAdminMiddleware(),
+		h.CreateAdmin)
 
 	router.GET("/admins",
 		middleware.AuthMiddleware(),
 		middleware.AdminMiddleware(),
-		handlers.GetAdmins)
+		h.GetAdmins)
 
 	router.GET("/admins/:id",
 		middleware.AuthMiddleware(),
 		middleware.AdminMiddleware(),
-		handlers.GetAdminByID)
+		h.GetAdminByID)
 
 	router.DELETE("/admins/:id",
 		middleware.AuthMiddleware(),
-		middleware.AdminMiddleware(),
-		handlers.DeleteAdmin)
+		middleware.SuperAdminMiddleware(),
+		h.DeleteAdmin)
 }

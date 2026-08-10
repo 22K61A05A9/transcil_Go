@@ -8,8 +8,10 @@ import (
 
 	"Paylater/services/admin/internal/database"
 	"Paylater/services/admin/internal/db/sqlc"
+	"Paylater/services/admin/internal/handlers"
 	"Paylater/services/admin/internal/routes"
-	"Paylater/services/admin/internal/utils"
+	"Paylater/services/admin/internal/services"
+	"Paylater/shared/auth"
 )
 
 func main() {
@@ -17,17 +19,22 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	utils.InitJWTSecret()
+	if err := auth.InitJWTSecret(); err != nil {
+		log.Fatal(err)
+	}
 
 	db, err := database.NewDB()
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
-	database.DB = db
-	database.Queries = sqlc.New(db)
+	defer db.Close()
+
+	queries := sqlc.New(db)
+	svc := services.New(queries)
+	h := handlers.New(svc)
 
 	router := gin.Default()
-	routes.SetupAdminRoutes(router)
+	routes.SetupAdminRoutes(router, h)
 
 	router.Run(":9093")
 }

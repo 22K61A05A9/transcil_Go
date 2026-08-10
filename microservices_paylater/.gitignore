@@ -1,7 +1,12 @@
-# Environment
+# Environment — never commit real secrets
 .env
+.env.docker
+**/.env
 .env.local
 .env.*.local
+
+# Safe template only (placeholders, no real secrets)
+!.env.example
 
 # Binaries
 *.exe

@@ -3,10 +3,12 @@ module Paylater/services/report
 go 1.26.5
 
 require (
+	Paylater/shared v0.0.0
 	github.com/gin-gonic/gin v1.12.0
-	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/joho/godotenv v1.5.1
 )
+
+require github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect
@@ -39,3 +41,5 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 )
+
+replace Paylater/shared => ../../shared

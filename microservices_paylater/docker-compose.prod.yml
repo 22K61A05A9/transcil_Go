@@ -3,68 +3,66 @@ services:
     image: mysql:8.0
     container_name: paylater-mysql
     restart: unless-stopped
-
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: rootpass
       MYSQL_DATABASE: paylater
       MYSQL_USER: gouser
       MYSQL_PASSWORD: Go123
-
     ports:
       - "3307:3306"
-
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./docker/mysql:/docker-entrypoint-initdb.d
-
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpass"]
+      interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
+      start_period: 20s
 
   user:
     image: haripriyanka99/paylater-user:v1
     container_name: paylater-user
     restart: unless-stopped
     env_file:
-      - .env.docker
+      - ./services/user/.env
     depends_on:
       mysql:
         condition: service_healthy
     ports:
       - "9091:9091"
-
-  admin:
-    image: haripriyanka99/paylater-admin:v1
-    container_name: paylater-admin
-    restart: unless-stopped
-    env_file:
-      - .env.docker
-    depends_on:
-      mysql:
-        condition: service_healthy
-    ports:
-      - "9093:9093"
+    healthcheck:
+      # debian:bookworm-slim has no wget/curl; bash /dev/tcp is available.
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9091 && printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && timeout 3 cat <&3 | grep -q \"200 OK\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   merchant:
     image: haripriyanka99/paylater-merchant:v1
     container_name: paylater-merchant
     restart: unless-stopped
     env_file:
-      - .env.docker
+      - ./services/merchant/.env
     depends_on:
       mysql:
         condition: service_healthy
     ports:
       - "9094:9094"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9094 && printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && timeout 3 cat <&3 | grep -q \"200 OK\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   transaction:
     image: haripriyanka99/paylater-transaction:v1
     container_name: paylater-transaction
     restart: unless-stopped
     env_file:
-      - .env.docker
+      - ./services/transaction/.env
     depends_on:
       mysql:
         condition: service_healthy
@@ -74,37 +72,71 @@ services:
         condition: service_started
     ports:
       - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9092 && printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && timeout 3 cat <&3 | grep -q \"200 OK\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  admin:
+    image: haripriyanka99/paylater-admin:v1
+    container_name: paylater-admin
+    restart: unless-stopped
+    env_file:
+      - ./services/admin/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "9093:9093"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9093 && printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && timeout 3 cat <&3 | grep -q \"200 OK\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   report:
     image: haripriyanka99/paylater-report:v1
     container_name: paylater-report
     restart: unless-stopped
     env_file:
-      - .env.docker
+      - ./services/report/.env
     depends_on:
-      mysql:
-        condition: service_healthy
       user:
         condition: service_started
       transaction:
         condition: service_started
     ports:
       - "9095:9095"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9095 && printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && timeout 3 cat <&3 | grep -q \"200 OK\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   gateway:
     image: haripriyanka99/paylater-gateway:v1
     container_name: paylater-gateway
     restart: unless-stopped
     env_file:
-      - .env.docker
+      - ./services/gateway/.env
     depends_on:
       - user
+      - transaction
       - admin
       - merchant
-      - transaction
       - report
     ports:
       - "9090:9090"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9090 && printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && timeout 3 cat <&3 | grep -q \"200 OK\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
 volumes:
   mysql_data:

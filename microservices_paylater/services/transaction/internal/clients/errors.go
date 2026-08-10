@@ -1,8 +1,8 @@
 package clients
 
 import (
-	"errors"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 )

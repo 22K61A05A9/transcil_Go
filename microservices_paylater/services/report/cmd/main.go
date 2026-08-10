@@ -9,7 +9,7 @@ import (
 	"Paylater/services/report/internal/clients"
 	"Paylater/services/report/internal/config"
 	"Paylater/services/report/internal/routes"
-	"Paylater/services/report/internal/utils"
+	"Paylater/shared/auth"
 )
 
 func main() {
@@ -17,7 +17,9 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	utils.InitJWTSecret()
+	if err := auth.InitJWTSecret(); err != nil {
+		log.Fatal(err)
+	}
 
 	clients.Init(config.Load())
 

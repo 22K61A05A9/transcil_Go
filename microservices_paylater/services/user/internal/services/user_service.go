@@ -3,13 +3,22 @@ package services
 import (
 	"context"
 
-	"Paylater/services/user/internal/database"
 	"Paylater/services/user/internal/db/sqlc"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateUser(ctx context.Context, user sqlc.CreateUserParams) error {
+// Service holds database dependencies for the user domain.
+type Service struct {
+	queries *sqlc.Queries
+}
+
+// New creates a user Service with an injected sqlc Queries instance.
+func New(queries *sqlc.Queries) *Service {
+	return &Service{queries: queries}
+}
+
+func (s *Service) CreateUser(ctx context.Context, user sqlc.CreateUserParams) error {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword(
 		[]byte(user.Password),
@@ -21,25 +30,25 @@ func CreateUser(ctx context.Context, user sqlc.CreateUserParams) error {
 
 	user.Password = string(hashedPassword)
 
-	return database.Queries.CreateUser(ctx, user)
+	return s.queries.CreateUser(ctx, user)
 }
 
-func GetUsers(ctx context.Context) ([]sqlc.User, error) {
-	return database.Queries.GetAllUsers(ctx)
+func (s *Service) GetUsers(ctx context.Context) ([]sqlc.User, error) {
+	return s.queries.GetAllUsers(ctx)
 }
 
-func GetUserByID(ctx context.Context, id int32) (sqlc.User, error) {
-	return database.Queries.GetUserByID(ctx, id)
+func (s *Service) GetUserByID(ctx context.Context, id int32) (sqlc.User, error) {
+	return s.queries.GetUserByID(ctx, id)
 }
 
-func UpdateUser(ctx context.Context, user sqlc.UpdateUserParams) error {
-	return database.Queries.UpdateUser(ctx, user)
+func (s *Service) UpdateUser(ctx context.Context, user sqlc.UpdateUserParams) error {
+	return s.queries.UpdateUser(ctx, user)
 }
 
-func DeleteUser(ctx context.Context, id int32) error {
-	return database.Queries.DeleteUser(ctx, id)
+func (s *Service) DeleteUser(ctx context.Context, id int32) error {
+	return s.queries.DeleteUser(ctx, id)
 }
 
-func UpdateCurrentDue(ctx context.Context, params sqlc.UpdateCurrentDueParams) error {
-	return database.Queries.UpdateCurrentDue(ctx, params)
+func (s *Service) UpdateCurrentDue(ctx context.Context, params sqlc.UpdateCurrentDueParams) error {
+	return s.queries.UpdateCurrentDue(ctx, params)
 }

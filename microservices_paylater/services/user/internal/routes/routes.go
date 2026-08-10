@@ -7,20 +7,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(router *gin.Engine) {
+func SetupRoutes(router *gin.Engine, h *handlers.Handler) {
 
-	router.POST("/users", handlers.CreateUser)
-	router.POST("/user/login", handlers.UserLogin)
+	router.GET("/health", handlers.Health)
+
+	router.POST("/users", h.CreateUser)
+	router.POST("/user/login", h.UserLogin)
 
 	router.GET("/users/:id",
 		middleware.AuthMiddleware(),
 		middleware.UserMiddleware(),
-		handlers.GetUserByID)
+		h.GetUserByID)
 
 	router.PUT("/users/:id",
 		middleware.AuthMiddleware(),
 		middleware.UserMiddleware(),
-		handlers.UpdateUser)
+		h.UpdateUser)
 
 	// S2S: used by Transaction Service to update due after purchase/payback.
 	// Not registered on the API Gateway.
@@ -28,15 +30,15 @@ func SetupRoutes(router *gin.Engine) {
 		middleware.InternalTokenMiddleware(),
 		middleware.AuthMiddleware(),
 		middleware.UserMiddleware(),
-		handlers.UpdateCurrentDue)
+		h.UpdateCurrentDue)
 
 	router.GET("/users",
 		middleware.AuthMiddleware(),
 		middleware.AdminMiddleware(),
-		handlers.GetUsers)
+		h.GetUsers)
 
 	router.DELETE("/users/:id",
 		middleware.AuthMiddleware(),
 		middleware.AdminMiddleware(),
-		handlers.DeleteUser)
+		h.DeleteUser)
 }

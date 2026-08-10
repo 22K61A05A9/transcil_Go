@@ -1,13 +1,13 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
-	"Paylater/services/transaction/internal/utils"
+	"Paylater/shared/auth"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -34,28 +34,17 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenString := parts[1]
 
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, jwt.ErrTokenSignatureInvalid
+		claims, err := auth.ParseToken(tokenString)
+		if err != nil {
+			if errors.Is(err, auth.ErrInvalidClaims) {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"error": "Invalid token claims",
+				})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"error": "Invalid or expired token",
+				})
 			}
-
-			return utils.SecretKey, nil
-		})
-
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid or expired token",
-			})
-			c.Abort()
-			return
-		}
-
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid token claims",
-			})
 			c.Abort()
 			return
 		}

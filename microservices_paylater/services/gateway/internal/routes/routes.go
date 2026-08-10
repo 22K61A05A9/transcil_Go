@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"net/http"
+
 	"Paylater/services/gateway/internal/config"
 	"Paylater/services/gateway/internal/proxy"
 
@@ -10,6 +12,11 @@ import (
 // SetupRoutes registers path-based reverse proxies to microservices.
 // More specific paths are registered before parameterized paths.
 func SetupRoutes(router *gin.Engine, cfg config.Config) {
+	// Gateway process liveness (not proxied upstream).
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+
 	user := proxy.Forward(cfg.UserServiceURL)
 	transaction := proxy.Forward(cfg.TransactionServiceURL)
 	admin := proxy.Forward(cfg.AdminServiceURL)

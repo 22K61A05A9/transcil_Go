@@ -4,15 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"Paylater/services/merchant/internal/database"
-	"Paylater/services/merchant/internal/utils"
+	"Paylater/shared/auth"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func MerchantLogin(ctx context.Context, email, password string) (string, error) {
+func (s *Service) MerchantLogin(ctx context.Context, email, password string) (string, error) {
 
-	merchant, err := database.Queries.GetMerchantByEmail(ctx, email)
+	merchant, err := s.queries.GetMerchantByEmail(ctx, email)
 	if err != nil {
 		return "", errors.New("invalid email or password")
 	}
@@ -25,7 +24,7 @@ func MerchantLogin(ctx context.Context, email, password string) (string, error) 
 		return "", errors.New("invalid email or password")
 	}
 
-	token, err := utils.GenerateToken(
+	token, err := auth.GenerateToken(
 		merchant.ID,
 		"merchant",
 	)

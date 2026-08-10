@@ -3,13 +3,22 @@ package services
 import (
 	"context"
 
-	"Paylater/services/admin/internal/database"
 	"Paylater/services/admin/internal/db/sqlc"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateAdmin(ctx context.Context, admin sqlc.CreateAdminParams) error {
+// Service holds database dependencies for the admin domain.
+type Service struct {
+	queries *sqlc.Queries
+}
+
+// New creates an admin Service with an injected sqlc Queries instance.
+func New(queries *sqlc.Queries) *Service {
+	return &Service{queries: queries}
+}
+
+func (s *Service) CreateAdmin(ctx context.Context, admin sqlc.CreateAdminParams) error {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword(
 		[]byte(admin.Password),
@@ -21,17 +30,17 @@ func CreateAdmin(ctx context.Context, admin sqlc.CreateAdminParams) error {
 
 	admin.Password = string(hashedPassword)
 
-	return database.Queries.CreateAdmin(ctx, admin)
+	return s.queries.CreateAdmin(ctx, admin)
 }
 
-func GetAdmins(ctx context.Context) ([]sqlc.Admin, error) {
-	return database.Queries.GetAllAdmins(ctx)
+func (s *Service) GetAdmins(ctx context.Context) ([]sqlc.Admin, error) {
+	return s.queries.GetAllAdmins(ctx)
 }
 
-func GetAdminByID(ctx context.Context, id int32) (sqlc.Admin, error) {
-	return database.Queries.GetAdminByID(ctx, id)
+func (s *Service) GetAdminByID(ctx context.Context, id int32) (sqlc.Admin, error) {
+	return s.queries.GetAdminByID(ctx, id)
 }
 
-func DeleteAdmin(ctx context.Context, id int32) error {
-	return database.Queries.DeleteAdmin(ctx, id)
+func (s *Service) DeleteAdmin(ctx context.Context, id int32) error {
+	return s.queries.DeleteAdmin(ctx, id)
 }

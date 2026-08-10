@@ -7,12 +7,11 @@ import (
 	"Paylater/services/transaction/internal/clients"
 	"Paylater/services/transaction/internal/db/sqlc"
 	"Paylater/services/transaction/internal/models"
-	"Paylater/services/transaction/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-func CreatePayback(c *gin.Context) {
+func (h *Handler) CreatePayback(c *gin.Context) {
 
 	var req models.CreatePaybackRequest
 
@@ -44,7 +43,7 @@ func CreatePayback(c *gin.Context) {
 		Amount: req.Amount,
 	}
 
-	err := services.ProcessPayback(c.Request.Context(), c.GetHeader("Authorization"), transaction)
+	err := h.svc.ProcessPayback(c.Request.Context(), c.GetHeader("Authorization"), transaction)
 	if err != nil {
 		status := http.StatusBadRequest
 		if errors.Is(err, clients.ErrUpstreamUnavailable) {

@@ -4,12 +4,11 @@ import (
 	"net/http"
 
 	"Paylater/services/merchant/internal/models"
-	"Paylater/services/merchant/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-func MerchantLogin(c *gin.Context) {
+func (h *Handler) MerchantLogin(c *gin.Context) {
 
 	var req models.LoginRequest
 
@@ -20,7 +19,7 @@ func MerchantLogin(c *gin.Context) {
 		return
 	}
 
-	token, err := services.MerchantLogin(c.Request.Context(), req.Email, req.Password)
+	token, err := h.svc.MerchantLogin(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),

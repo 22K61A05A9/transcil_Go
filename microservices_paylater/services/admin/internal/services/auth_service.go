@@ -4,15 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"Paylater/services/admin/internal/database"
-	"Paylater/services/admin/internal/utils"
+	"Paylater/shared/auth"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func AdminLogin(ctx context.Context, email, password string) (string, error) {
+func (s *Service) AdminLogin(ctx context.Context, email, password string) (string, error) {
 
-	admin, err := database.Queries.GetAdminByEmail(ctx, email)
+	admin, err := s.queries.GetAdminByEmail(ctx, email)
 	if err != nil {
 		return "", errors.New("invalid email or password")
 	}
@@ -25,7 +24,7 @@ func AdminLogin(ctx context.Context, email, password string) (string, error) {
 		return "", errors.New("invalid email or password")
 	}
 
-	token, err := utils.GenerateToken(
+	token, err := auth.GenerateToken(
 		admin.ID,
 		string(admin.Role),
 	)

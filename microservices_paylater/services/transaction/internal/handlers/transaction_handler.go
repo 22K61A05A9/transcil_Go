@@ -14,7 +14,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateTransaction(c *gin.Context) {
+// Handler exposes HTTP handlers with an injected transaction Service.
+type Handler struct {
+	svc *services.Service
+}
+
+// New creates a Handler with the given Service dependency.
+func New(svc *services.Service) *Handler {
+	return &Handler{svc: svc}
+}
+
+func (h *Handler) CreateTransaction(c *gin.Context) {
 
 	var req models.CreateTransactionRequest
 
@@ -50,7 +60,7 @@ func CreateTransaction(c *gin.Context) {
 		Amount: req.Amount,
 	}
 
-	err := services.ProcessTransaction(c.Request.Context(), c.GetHeader("Authorization"), transaction)
+	err := h.svc.ProcessTransaction(c.Request.Context(), c.GetHeader("Authorization"), transaction)
 	if err != nil {
 		status := http.StatusBadRequest
 		if errors.Is(err, clients.ErrUpstreamUnavailable) {
@@ -67,9 +77,9 @@ func CreateTransaction(c *gin.Context) {
 	})
 }
 
-func GetTransactions(c *gin.Context) {
+func (h *Handler) GetTransactions(c *gin.Context) {
 
-	transactions, err := services.GetTransactions(c.Request.Context())
+	transactions, err := h.svc.GetTransactions(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -80,7 +90,7 @@ func GetTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, transactions)
 }
 
-func GetTransactionByID(c *gin.Context) {
+func (h *Handler) GetTransactionByID(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -90,7 +100,7 @@ func GetTransactionByID(c *gin.Context) {
 		return
 	}
 
-	transaction, err := services.GetTransactionByID(c.Request.Context(), int32(id))
+	transaction, err := h.svc.GetTransactionByID(c.Request.Context(), int32(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "Transaction not found",
@@ -101,7 +111,7 @@ func GetTransactionByID(c *gin.Context) {
 	c.JSON(http.StatusOK, transaction)
 }
 
-func GetTransactionsByUser(c *gin.Context) {
+func (h *Handler) GetTransactionsByUser(c *gin.Context) {
 
 	userID, err := strconv.Atoi(c.Param("user_id"))
 	if err != nil {
@@ -111,7 +121,7 @@ func GetTransactionsByUser(c *gin.Context) {
 		return
 	}
 
-	transactions, err := services.GetTransactionsByUser(c.Request.Context(), int32(userID))
+	transactions, err := h.svc.GetTransactionsByUser(c.Request.Context(), int32(userID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -122,7 +132,7 @@ func GetTransactionsByUser(c *gin.Context) {
 	c.JSON(http.StatusOK, transactions)
 }
 
-func GetTransactionsByMerchant(c *gin.Context) {
+func (h *Handler) GetTransactionsByMerchant(c *gin.Context) {
 
 	merchantID, err := strconv.Atoi(c.Param("merchant_id"))
 	if err != nil {
@@ -132,7 +142,7 @@ func GetTransactionsByMerchant(c *gin.Context) {
 		return
 	}
 
-	transactions, err := services.GetTransactionsByMerchant(
+	transactions, err := h.svc.GetTransactionsByMerchant(
 		c.Request.Context(),
 		sql.NullInt32{
 			Int32: int32(merchantID),

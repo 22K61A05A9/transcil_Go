@@ -4,9 +4,9 @@ import "os"
 
 // Config holds upstream service base URLs and the shared S2S token.
 type Config struct {
-	UserServiceURL        string
-	MerchantServiceURL    string
-	InternalServiceToken  string
+	UserServiceURL       string
+	MerchantServiceURL   string
+	InternalServiceToken string
 }
 
 // Load reads S2S settings from the environment with localhost defaults.

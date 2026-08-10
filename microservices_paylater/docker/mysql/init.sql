@@ -36,10 +36,3 @@ CREATE TABLE IF NOT EXISTS transactions (
     commission DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     commission_percentage DECIMAL(5,2) NOT NULL DEFAULT 0.00
 );
-INSERT INTO admins (admin_name, email, password, role)
-VALUES (
-    'Super Admin',
-    'admin@gmail.com',
-    '$2a$10$hZWqKMlMeOUxI5XSDU6V.O1La2gWPKdftz/ReWr82kWqC1Nk4V8FS',
-    'SUPER_ADMIN'
-);

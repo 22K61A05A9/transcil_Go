@@ -1,0 +1,10 @@
+.git
+.cursor
+**/agent-transcripts
+monolithic
+**/.env
+**/.env.*
+!.env.example
+**/*.md
+**/tmp
+**/temp

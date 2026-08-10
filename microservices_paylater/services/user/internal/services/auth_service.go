@@ -4,15 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"Paylater/services/user/internal/database"
-	"Paylater/services/user/internal/utils"
+	"Paylater/shared/auth"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func UserLogin(ctx context.Context, email, password string) (string, error) {
+func (s *Service) UserLogin(ctx context.Context, email, password string) (string, error) {
 
-	user, err := database.Queries.GetUserByEmail(ctx, email)
+	user, err := s.queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		return "", errors.New("invalid email or password")
 	}
@@ -25,7 +24,7 @@ func UserLogin(ctx context.Context, email, password string) (string, error) {
 		return "", errors.New("invalid email or password")
 	}
 
-	token, err := utils.GenerateToken(
+	token, err := auth.GenerateToken(
 		user.ID,
 		"user",
 	)

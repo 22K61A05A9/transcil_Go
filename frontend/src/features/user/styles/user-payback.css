@@ -1,0 +1,19 @@
+/* User payback page layout */
+
+.user-payback {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 36rem;
+}
+
+.user-payback .user-dashboard__cards {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 640px) {
+  .user-payback {
+    max-width: 100%;
+  }
+}

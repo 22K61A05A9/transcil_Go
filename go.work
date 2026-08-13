@@ -1,0 +1,11 @@
+go 1.26.5
+
+use (
+	./services/admin
+	./services/gateway
+	./services/merchant
+	./services/report
+	./services/transaction
+	./services/user
+	./shared
+)

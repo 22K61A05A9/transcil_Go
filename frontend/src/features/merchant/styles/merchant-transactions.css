@@ -1,0 +1,23 @@
+/* Merchant transactions — layout tweaks on shared user-transactions patterns */
+
+.merchant-transactions__summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.merchant-transactions__summary:has(.user-dashboard__card:nth-child(4)) {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1023px) {
+  .merchant-transactions__summary,
+  .merchant-transactions__summary:has(.user-dashboard__card:nth-child(4)) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .merchant-transactions__summary,
+  .merchant-transactions__summary:has(.user-dashboard__card:nth-child(4)) {
+    grid-template-columns: 1fr;
+  }
+}

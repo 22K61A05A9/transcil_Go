@@ -1,0 +1,65 @@
+/* Merchant dashboard — extends shared user-dashboard layout tokens */
+
+.merchant-dashboard__profile {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.merchant-dashboard__profile-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+}
+
+.merchant-dashboard__profile-item dt {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.merchant-dashboard__profile-item dd {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.merchant-dashboard__cards {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.merchant-dashboard__inline-error {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1023px) {
+  .merchant-dashboard__cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .merchant-dashboard__profile {
+    grid-template-columns: 1fr;
+  }
+
+  .merchant-dashboard__cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.merchant-dashboard__actions {
+  grid-template-columns: repeat(2, minmax(0, 16rem));
+}
+
+@media (max-width: 640px) {
+  .merchant-dashboard__actions {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,6 @@
+CREATE TABLE emp1 (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    age INT NOT NULL,
+    salary DECIMAL(10,2) NOT NULL
+);

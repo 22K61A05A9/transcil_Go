@@ -1,0 +1,118 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: paylater-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: paylater
+      MYSQL_USER: gouser
+      MYSQL_PASSWORD: Go123
+    ports:
+      # Host 3307 so it does not clash with a local MySQL on 3306
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  user:
+    build:
+      context: .
+      dockerfile: services/user/Dockerfile
+    container_name: paylater-user
+    restart: unless-stopped
+    env_file:
+      - ./services/user/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "9091:9091"
+
+  merchant:
+    build:
+      context: .
+      dockerfile: services/merchant/Dockerfile
+    container_name: paylater-merchant
+    restart: unless-stopped
+    env_file:
+      - ./services/merchant/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "9094:9094"
+
+  transaction:
+    build:
+      context: .
+      dockerfile: services/transaction/Dockerfile
+    container_name: paylater-transaction
+    restart: unless-stopped
+    env_file:
+      - ./services/transaction/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      user:
+        condition: service_started
+      merchant:
+        condition: service_started
+    ports:
+      - "9092:9092"
+
+  admin:
+    build:
+      context: .
+      dockerfile: services/admin/Dockerfile
+    container_name: paylater-admin
+    restart: unless-stopped
+    env_file:
+      - ./services/admin/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "9093:9093"
+
+  report:
+    build:
+      context: .
+      dockerfile: services/report/Dockerfile
+    container_name: paylater-report
+    restart: unless-stopped
+    env_file:
+      - ./services/report/.env
+    depends_on:
+      user:
+        condition: service_started
+      transaction:
+        condition: service_started
+    ports:
+      - "9095:9095"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    container_name: paylater-gateway
+    restart: unless-stopped
+    env_file:
+      - ./services/gateway/.env
+    depends_on:
+      - user
+      - transaction
+      - admin
+      - merchant
+      - report
+    ports:
+      - "9090:9090"
+
+volumes:
+  mysql_data:

@@ -1,0 +1,451 @@
+{
+  "info": {
+    "_postman_id": "2bb118d6-a6df-4aca-9cea-285abeabb60f",
+    "name": "paylater_microservices_docker",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "56569150",
+    "_collection_link": "https://go.postman.co/collection/56569150-2bb118d6-a6df-4aca-9cea-285abeabb60f?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "gateway health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/health",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "user reg",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"user_name\": \"xyz\",\r\n    \"email\": \"xyz@gmail.com\",\r\n    \"password\":\"123456\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "user login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"xyz1@gmail.com\",\r\n    \"password\":\"123456\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/user/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "user",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get users",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_secret_0hhf}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"user_name\": \"xyz\",\r\n    \"email\": \"xyz@gmail.com\",\r\n    \"password\":\"123456\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "merchant reg",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_secret_0hhf}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"merchant_name\": \"Amazon\",\r\n    \"email\": \"amazon@gmail.com\",\r\n    \"password\": \"123456\",\r\n    \"phone_number\": \"9876543210\",\r\n    \"commission_percentage\": \"5\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/merchants",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "merchant login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"amazon@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/merchant/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchant",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get merchants",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_secret_0hhf}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_13i1}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"merchant_name\": \"Amazon\",\r\n    \"email\": \"amazon@gmail.com\",\r\n    \"password\": \"123456\",\r\n    \"phone_number\": \"9876543210\",\r\n    \"commission_percentage\": \"5\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/merchants",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "create transaction",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_secret_0hhf}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{supabase_service_role_api_key_08k9}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"user_id\":2,\r\n    \"merchant_id\":1,\r\n    \"amount\":\"200\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/transactions",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "transactions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get all transactions",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "payback",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_0zjd}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"user_id\":2,\r\n    \"amount\":\"300\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:9090/payback",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "payback"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "user credit limit",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_secret_0hhf}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/users/credit-limit",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "users",
+            "credit-limit"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "user due",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_08k9}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:9090/user/2/due",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "user",
+            "2",
+            "due"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "merchant fee",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_secret_0hhf}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/merchant/1/fee",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "merchant",
+            "1",
+            "fee"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "customers with due",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_secret_0hhf}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/customers-with-due",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9090",
+          "path": [
+            "customers-with-due"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "auth_secret_0hhf",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_13i1",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_1chn",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_08k9",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_0zjd",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_08k9",
+      "secret": true
+    }
+  ]
+}

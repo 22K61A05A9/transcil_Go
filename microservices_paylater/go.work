@@ -1,0 +1,12 @@
+go 1.26.5
+
+use (
+	./monolithic
+	./shared
+	./services/admin
+	./services/merchant
+	./services/user
+	./services/transaction
+	./services/report
+	./services/gateway
+)

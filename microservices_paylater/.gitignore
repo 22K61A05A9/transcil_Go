@@ -1,0 +1,39 @@
+# Environment — never commit real secrets
+.env
+.env.docker
+**/.env
+.env.local
+.env.*.local
+
+# Safe template only (placeholders, no real secrets)
+!.env.example
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+paylater
+admin-service
+api-facade
+
+# Go workspace / build
+bin/
+dist/
+vendor/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs / temp
+*.log
+tmp/
+temp/

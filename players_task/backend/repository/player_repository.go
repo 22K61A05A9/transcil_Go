@@ -31,6 +31,19 @@ func (r *PlayerRepository) GetAllPlayers(
 	)
 }
 
+func (r *PlayerRepository) GetPlayersByName(
+	ctx context.Context,
+	search string,
+) ([]db.Person, error) {
+
+	return r.queries.GetPlayersByName(
+		ctx,
+		db.GetPlayersByNameParams{
+			Search: search,
+		},
+	)
+}
+
 func (r *PlayerRepository) GetPlayerByID(
 	ctx context.Context,
 	playerID string,

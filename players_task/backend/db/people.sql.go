@@ -167,3 +167,90 @@ func (q *Queries) GetPlayerByID(ctx context.Context, playerid string) (Person, e
 	)
 	return i, err
 }
+
+const getPlayersByName = `-- name: GetPlayersByName :many
+SELECT
+    playerid, birthyear, birthmonth, birthday, birthcountry, birthstate, birthcity, deathyear, deathmonth, deathday, deathcountry, deathstate, deathcity, namefirst, namelast, namegiven, weight, height, bats, throws, debut, finalgame, retroid, bbrefid
+FROM people
+WHERE
+    LOWER(nameFirst) LIKE CONCAT('%', LOWER(?), '%')
+    OR LOWER(nameLast) LIKE CONCAT('%', LOWER(?), '%')
+    OR LOWER(nameGiven) LIKE CONCAT('%', LOWER(?), '%')
+    OR LOWER(
+        CONCAT(nameFirst, ' ', nameLast)
+    ) LIKE CONCAT(
+        '%',
+        LOWER(?),
+        '%'
+    )
+    OR LOWER(
+        REPLACE(
+            CONCAT(nameFirst, nameLast),
+            ' ',
+            ''
+        )
+    ) LIKE CONCAT(
+        '%',
+        REPLACE(LOWER(?), ' ', ''),
+        '%'
+    )
+ORDER BY nameLast, nameFirst
+`
+
+type GetPlayersByNameParams struct {
+	Search string
+}
+
+func (q *Queries) GetPlayersByName(ctx context.Context, arg GetPlayersByNameParams) ([]Person, error) {
+	rows, err := q.db.QueryContext(ctx, getPlayersByName,
+		arg.Search,
+		arg.Search,
+		arg.Search,
+		arg.Search,
+		arg.Search,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Person
+	for rows.Next() {
+		var i Person
+		if err := rows.Scan(
+			&i.Playerid,
+			&i.Birthyear,
+			&i.Birthmonth,
+			&i.Birthday,
+			&i.Birthcountry,
+			&i.Birthstate,
+			&i.Birthcity,
+			&i.Deathyear,
+			&i.Deathmonth,
+			&i.Deathday,
+			&i.Deathcountry,
+			&i.Deathstate,
+			&i.Deathcity,
+			&i.Namefirst,
+			&i.Namelast,
+			&i.Namegiven,
+			&i.Weight,
+			&i.Height,
+			&i.Bats,
+			&i.Throws,
+			&i.Debut,
+			&i.Finalgame,
+			&i.Retroid,
+			&i.Bbrefid,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

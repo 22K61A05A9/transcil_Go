@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"math"
+	"strings"
 
 	"players_task/db"
 	"players_task/repository"
@@ -40,6 +41,7 @@ func (s *PlayerService) GetAllPlayers(
 	ctx context.Context,
 	page int,
 	limit int,
+	search string,
 ) (*PlayerListResult, error) {
 
 	if page < 1 {
@@ -50,14 +52,56 @@ func (s *PlayerService) GetAllPlayers(
 		return nil, ErrInvalidLimit
 	}
 
-	// Maximum 100 records per request.
+	// Maximum 100 records per normal request.
 	if limit > 100 {
 		limit = 100
 	}
 
+	search = strings.TrimSpace(search)
+
+	// ========================================================
+	// SEARCH BY NAME
+	// ========================================================
+
+	if search != "" {
+
+		players, err := s.repository.GetPlayersByName(
+			ctx,
+			search,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		/*
+		 * GetPlayersByName currently returns a maximum
+		 * of 20 matching players from the database.
+		 *
+		 * We intentionally don't calculate search
+		 * pagination because CountPlayersByName
+		 * was not added.
+		 */
+
+		totalPlayers := int64(len(players))
+
+		return &PlayerListResult{
+			Players:      players,
+			Page:         1,
+			Limit:        len(players),
+			TotalPlayers: totalPlayers,
+			TotalPages:   1,
+		}, nil
+	}
+
+	// ========================================================
+	// NORMAL PAGINATION
+	// ========================================================
+
 	offset := (page - 1) * limit
 
 	totalPlayers, err := s.repository.CountPlayers(ctx)
+
 	if err != nil {
 		return nil, err
 	}
@@ -67,13 +111,15 @@ func (s *PlayerService) GetAllPlayers(
 		int32(limit),
 		int32(offset),
 	)
+
 	if err != nil {
 		return nil, err
 	}
 
 	totalPages := int(
 		math.Ceil(
-			float64(totalPlayers) / float64(limit),
+			float64(totalPlayers) /
+				float64(limit),
 		),
 	)
 
@@ -97,6 +143,7 @@ func (s *PlayerService) GetPlayerByID(
 	)
 
 	if err != nil {
+
 		if errors.Is(err, sql.ErrNoRows) {
 			return db.Person{}, ErrPlayerNotFound
 		}

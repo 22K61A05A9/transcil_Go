@@ -42,7 +42,7 @@ function SearchBar({
         <input
           type="text"
           aria-label="Search players"
-          placeholder="Search players by name or ID..."
+          placeholder="Search players by name..."
           value={value}
           autoComplete="off"
           onChange={(event) =>

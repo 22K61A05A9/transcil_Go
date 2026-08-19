@@ -1,6 +1,12 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
-import { getPlayers, getPlayerById } from "../api/playerApi";
+import {
+  getPlayers,
+  getPlayerById,
+} from "../api/playerApi";
 
 import type { Player } from "../types/player";
 
@@ -13,44 +19,64 @@ import "../styles/players.css";
 
 function PlayersPage() {
   const [players, setPlayers] = useState<Player[]>([]);
+
   const [search, setSearch] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
+
   const [totalPages, setTotalPages] = useState(1);
+
   const [totalPlayers, setTotalPlayers] = useState(0);
 
   const [loading, setLoading] = useState(true);
+
+  const [searchLoading, setSearchLoading] =
+    useState(false);
+
   const [error, setError] = useState("");
 
   const [selectedPlayer, setSelectedPlayer] =
     useState<Player | null>(null);
 
-  const [playerLoading, setPlayerLoading] = useState(false);
+  const [playerLoading, setPlayerLoading] =
+    useState(false);
 
-  // Number of players displayed per page
   const limit = 20;
 
   /*
    * ========================================================
-   * LOAD PLAYERS
+   * LOAD PLAYERS / BACKEND SEARCH
    * ========================================================
    *
-   * Backend API:
-   * GET /players?page=<currentPage>&limit=20
+   * Normal:
+   * GET /players?page=1&limit=20
    *
-   * Whenever currentPage changes, this effect loads
-   * the corresponding page from the backend.
+   * Search:
+   * GET /players?page=1&limit=20&search=Bob
+   *
+   * Backend search starts only after 2 characters.
    */
 
   useEffect(() => {
+    const trimmedSearch = search.trim();
+
+    const isSearching =
+      trimmedSearch.length >= 2;
+
     const loadPlayers = async () => {
       try {
-        setLoading(true);
+        if (isSearching) {
+          setSearchLoading(true);
+        } else {
+          setLoading(true);
+        }
+
         setError("");
 
         const response = await getPlayers(
           currentPage,
-          limit
+          limit,
+          isSearching ? trimmedSearch : ""
         );
 
         setPlayers(response.data);
@@ -63,69 +89,68 @@ function PlayersPage() {
           response.pagination.totalPlayers
         );
       } catch (error) {
-        console.error(error);
+        console.error(
+          "Failed to load players:",
+          error
+        );
 
-        setError("Failed to load players.");
+        setError(
+          "Failed to load players."
+        );
       } finally {
         setLoading(false);
+        setSearchLoading(false);
       }
     };
 
-    loadPlayers();
-  }, [currentPage]);
+    /*
+     * Don't send a search request for
+     * only one character.
+     */
 
-  /*
-   * ========================================================
-   * SEARCH
-   * ========================================================
-   *
-   * Search is handled on the frontend.
-   *
-   * Since the backend currently returns only the players
-   * belonging to the selected page, the search checks
-   * the players currently loaded on that page.
-   */
-
-  const searchValue = search.trim().toLowerCase();
-
-  const filteredPlayers = players.filter((player) => {
-    if (!searchValue) {
-      return true;
+    if (
+      trimmedSearch.length === 1
+    ) {
+      return;
     }
 
-    return (
-      (player.playerID ?? "")
-        .toLowerCase()
-        .includes(searchValue) ||
+    /*
+     * Normal loading happens immediately.
+     *
+     * Search waits 300ms so that we don't
+     * send a request for every keystroke.
+     */
 
-      (player.nameFirst ?? "")
-        .toLowerCase()
-        .includes(searchValue) ||
+    const delay =
+      trimmedSearch.length >= 2
+        ? 300
+        : 0;
 
-      (player.nameLast ?? "")
-        .toLowerCase()
-        .includes(searchValue) ||
-
-      (player.nameGiven ?? "")
-        .toLowerCase()
-        .includes(searchValue)
+    const timer = window.setTimeout(
+      loadPlayers,
+      delay
     );
-  });
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [currentPage, search]);
 
   /*
    * ========================================================
-   * HANDLE SEARCH CHANGE
+   * SEARCH CHANGE
    * ========================================================
-   *
-   * When the user starts searching from another page,
-   * return to page 1.
-   *
-   * SearchBar also uses this function when the user
-   * clicks the clear (X) button.
    */
 
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = (
+    value: string
+  ) => {
     setSearch(value);
+
+    /*
+     * Every new search starts
+     * from page 1.
+     */
 
     if (currentPage !== 1) {
       setCurrentPage(1);
@@ -136,18 +161,11 @@ function PlayersPage() {
    * ========================================================
    * PAGE CHANGE
    * ========================================================
-   *
-   * When the user changes page:
-   * 1. Clear any current search.
-   * 2. Change current page.
-   * 3. Scroll the browser to the top.
    */
 
-  const handlePageChange = (page: number) => {
-    if (search) {
-      setSearch("");
-    }
-
+  const handlePageChange = (
+    page: number
+  ) => {
     setCurrentPage(page);
 
     window.scrollTo({
@@ -161,25 +179,32 @@ function PlayersPage() {
    * VIEW PLAYER
    * ========================================================
    *
-   * Calls:
    * GET /players/:id
    *
-   * The returned player is displayed inside the
-   * player details modal.
+   * This gets the complete player record.
    */
 
-  const handleViewPlayer = async (playerID: string) => {
+  const handleViewPlayer = async (
+    playerID: string
+  ) => {
     try {
       setPlayerLoading(true);
+
       setError("");
 
-      const player = await getPlayerById(playerID);
+      const player =
+        await getPlayerById(playerID);
 
       setSelectedPlayer(player);
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Failed to load player details:",
+        error
+      );
 
-      setError("Failed to load player details.");
+      setError(
+        "Failed to load player details."
+      );
     } finally {
       setPlayerLoading(false);
     }
@@ -197,6 +222,18 @@ function PlayersPage() {
 
   /*
    * ========================================================
+   * SEARCH STATUS
+   * ========================================================
+   */
+
+  const trimmedSearch =
+    search.trim();
+
+  const isSearching =
+    trimmedSearch.length >= 2;
+
+  /*
+   * ========================================================
    * LOADING STATE
    * ========================================================
    */
@@ -204,9 +241,13 @@ function PlayersPage() {
   if (loading) {
     return (
       <div className="page-state">
+
         <div className="loader"></div>
 
-        <p>Loading players...</p>
+        <p>
+          Loading players...
+        </p>
+
       </div>
     );
   }
@@ -217,12 +258,21 @@ function PlayersPage() {
    * ========================================================
    */
 
-  if (error && !selectedPlayer) {
+  if (
+    error &&
+    !selectedPlayer
+  ) {
     return (
       <div className="page-state error-state">
-        <h2>Something went wrong</h2>
 
-        <p>{error}</p>
+        <h2>
+          Something went wrong
+        </h2>
+
+        <p>
+          {error}
+        </p>
+
       </div>
     );
   }
@@ -257,8 +307,8 @@ function PlayersPage() {
             </h1>
 
             <p className="page-description">
-              Explore and discover players from
-              the database.
+              Search and discover players
+              from the database.
             </p>
 
           </div>
@@ -266,11 +316,15 @@ function PlayersPage() {
           <div className="player-count">
 
             <strong>
-              {totalPlayers}
+              {isSearching
+                ? players.length
+                : totalPlayers}
             </strong>
 
             <span>
-              Total Players
+              {isSearching
+                ? "Matching Players"
+                : "Total Players"}
             </span>
 
           </div>
@@ -286,6 +340,22 @@ function PlayersPage() {
           value={search}
           onChange={handleSearchChange}
         />
+
+        {search.trim().length === 1 && (
+
+          <div className="search-status">
+            Type at least 2 characters to search.
+          </div>
+
+        )}
+
+        {searchLoading && (
+
+          <div className="search-status">
+            Searching players...
+          </div>
+
+        )}
 
 
         {/* ==================================================
@@ -305,9 +375,11 @@ function PlayersPage() {
               </h2>
 
               <p>
-                {searchValue
-                  ? `${filteredPlayers.length} matching players on this page`
+
+                {isSearching
+                  ? `Search results for "${trimmedSearch}"`
                   : `Showing page ${currentPage} of ${totalPages}`}
+
               </p>
 
             </div>
@@ -319,18 +391,14 @@ function PlayersPage() {
               PLAYER TABLE
           ================================================== */}
 
-          {filteredPlayers.length > 0 ? (
+          {players.length > 0 ? (
 
             <PlayerTable
-              players={filteredPlayers}
+              players={players}
               onView={handleViewPlayer}
             />
 
           ) : (
-
-            /* ==================================================
-               EMPTY SEARCH RESULT
-            ================================================== */
 
             <div className="no-results">
 
@@ -343,13 +411,15 @@ function PlayersPage() {
               </h3>
 
               <p>
-                No players on this page match
-                "{search}".
+
+                {isSearching
+                  ? `No players match "${trimmedSearch}".`
+                  : "No players are available."}
+
               </p>
 
               <p>
-                Try another name or player ID,
-                or move to another page.
+                Try searching with another name.
               </p>
 
             </div>
@@ -361,15 +431,16 @@ function PlayersPage() {
               PAGINATION
           ================================================== */}
 
-          {!searchValue && (
+          {!isSearching &&
+            totalPages > 1 && (
 
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
 
-          )}
+            )}
 
         </section>
 
@@ -394,7 +465,7 @@ function PlayersPage() {
             }
           >
 
-            {/* CLOSE BUTTON */}
+            {/* CLOSE */}
 
             <button
               className="modal-close"
@@ -405,15 +476,20 @@ function PlayersPage() {
             </button>
 
 
-            {/* MODAL HEADER */}
+            {/* HEADER */}
 
             <p className="modal-label">
               PLAYER DETAILS
             </p>
 
             <h2>
-              {selectedPlayer.nameFirst ?? ""}{" "}
+
+              {selectedPlayer.nameFirst ?? ""}
+
+              {" "}
+
               {selectedPlayer.nameLast ?? ""}
+
             </h2>
 
             <p className="modal-player-id">
@@ -422,14 +498,30 @@ function PlayersPage() {
 
 
             {/* ==================================================
-                PLAYER DETAILS
+                ALL 24 PLAYER DETAILS
             ================================================== */}
 
             <div className="player-details-grid">
 
-              {/* BIRTH YEAR */}
+              {/* 1. PLAYER ID */}
 
               <div>
+
+                <span>
+                  Player ID
+                </span>
+
+                <strong>
+                  {selectedPlayer.playerID || "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 2. BIRTH YEAR */}
+
+              <div>
+
                 <span>
                   Birth Year
                 </span>
@@ -437,38 +529,59 @@ function PlayersPage() {
                 <strong>
                   {selectedPlayer.birthYear ?? "—"}
                 </strong>
+
               </div>
 
 
-              {/* COUNTRY */}
+              {/* 3. BIRTH MONTH */}
 
               <div>
+
                 <span>
-                  Country
+                  Birth Month
+                </span>
+
+                <strong>
+                  {selectedPlayer.birthMonth ?? "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 4. BIRTH DAY */}
+
+              <div>
+
+                <span>
+                  Birth Day
+                </span>
+
+                <strong>
+                  {selectedPlayer.birthDay ?? "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 5. BIRTH COUNTRY */}
+
+              <div>
+
+                <span>
+                  Birth Country
                 </span>
 
                 <strong>
                   {selectedPlayer.birthCountry || "—"}
                 </strong>
+
               </div>
 
 
-              {/* BIRTH CITY */}
+              {/* 6. BIRTH STATE */}
 
               <div>
-                <span>
-                  Birth City
-                </span>
 
-                <strong>
-                  {selectedPlayer.birthCity || "—"}
-                </strong>
-              </div>
-
-
-              {/* BIRTH STATE */}
-
-              <div>
                 <span>
                   Birth State
                 </span>
@@ -476,42 +589,198 @@ function PlayersPage() {
                 <strong>
                   {selectedPlayer.birthState || "—"}
                 </strong>
+
               </div>
 
 
-              {/* HEIGHT */}
+              {/* 7. BIRTH CITY */}
 
               <div>
+
                 <span>
-                  Height
+                  Birth City
                 </span>
 
                 <strong>
-                  {selectedPlayer.height
-                    ? `${selectedPlayer.height} in`
-                    : "—"}
+                  {selectedPlayer.birthCity || "—"}
                 </strong>
+
               </div>
 
 
-              {/* WEIGHT */}
+              {/* 8. DEATH YEAR */}
 
               <div>
+
+                <span>
+                  Death Year
+                </span>
+
+                <strong>
+                  {selectedPlayer.deathYear ?? "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 9. DEATH MONTH */}
+
+              <div>
+
+                <span>
+                  Death Month
+                </span>
+
+                <strong>
+                  {selectedPlayer.deathMonth ?? "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 10. DEATH DAY */}
+
+              <div>
+
+                <span>
+                  Death Day
+                </span>
+
+                <strong>
+                  {selectedPlayer.deathDay ?? "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 11. DEATH COUNTRY */}
+
+              <div>
+
+                <span>
+                  Death Country
+                </span>
+
+                <strong>
+                  {selectedPlayer.deathCountry || "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 12. DEATH STATE */}
+
+              <div>
+
+                <span>
+                  Death State
+                </span>
+
+                <strong>
+                  {selectedPlayer.deathState || "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 13. DEATH CITY */}
+
+              <div>
+
+                <span>
+                  Death City
+                </span>
+
+                <strong>
+                  {selectedPlayer.deathCity || "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 14. FIRST NAME */}
+
+              <div>
+
+                <span>
+                  First Name
+                </span>
+
+                <strong>
+                  {selectedPlayer.nameFirst || "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 15. LAST NAME */}
+
+              <div>
+
+                <span>
+                  Last Name
+                </span>
+
+                <strong>
+                  {selectedPlayer.nameLast || "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 16. GIVEN NAME */}
+
+              <div>
+
+                <span>
+                  Given Name
+                </span>
+
+                <strong>
+                  {selectedPlayer.nameGiven || "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 17. WEIGHT */}
+
+              <div>
+
                 <span>
                   Weight
                 </span>
 
                 <strong>
-                  {selectedPlayer.weight
+                  {selectedPlayer.weight != null
                     ? `${selectedPlayer.weight} lb`
                     : "—"}
                 </strong>
+
               </div>
 
 
-              {/* BATS */}
+              {/* 18. HEIGHT */}
 
               <div>
+
+                <span>
+                  Height
+                </span>
+
+                <strong>
+                  {selectedPlayer.height != null
+                    ? `${selectedPlayer.height} in`
+                    : "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 19. BATS */}
+
+              <div>
+
                 <span>
                   Bats
                 </span>
@@ -519,12 +788,14 @@ function PlayersPage() {
                 <strong>
                   {selectedPlayer.bats || "—"}
                 </strong>
+
               </div>
 
 
-              {/* THROWS */}
+              {/* 20. THROWS */}
 
               <div>
+
                 <span>
                   Throws
                 </span>
@@ -532,12 +803,14 @@ function PlayersPage() {
                 <strong>
                   {selectedPlayer.throws || "—"}
                 </strong>
+
               </div>
 
 
-              {/* DEBUT */}
+              {/* 21. DEBUT */}
 
               <div>
+
                 <span>
                   Debut
                 </span>
@@ -545,12 +818,14 @@ function PlayersPage() {
                 <strong>
                   {selectedPlayer.debut || "—"}
                 </strong>
+
               </div>
 
 
-              {/* FINAL GAME */}
+              {/* 22. FINAL GAME */}
 
               <div>
+
                 <span>
                   Final Game
                 </span>
@@ -558,6 +833,37 @@ function PlayersPage() {
                 <strong>
                   {selectedPlayer.finalGame || "—"}
                 </strong>
+
+              </div>
+
+
+              {/* 23. RETRO ID */}
+
+              <div>
+
+                <span>
+                  Retro ID
+                </span>
+
+                <strong>
+                  {selectedPlayer.retroID || "—"}
+                </strong>
+
+              </div>
+
+
+              {/* 24. BBREF ID */}
+
+              <div>
+
+                <span>
+                  BBRef ID
+                </span>
+
+                <strong>
+                  {selectedPlayer.bbrefID || "—"}
+                </strong>
+
               </div>
 
             </div>

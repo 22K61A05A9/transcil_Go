@@ -23,9 +23,10 @@ func NewPlayerHandler(
 	}
 }
 
-// GET /players?page=1&limit=20
+// GET /players?page=1&limit=20&search=da
 func (h *PlayerHandler) GetAllPlayers(c *gin.Context) {
 
+	// Get page number.
 	page, err := strconv.Atoi(
 		c.DefaultQuery("page", "1"),
 	)
@@ -37,6 +38,7 @@ func (h *PlayerHandler) GetAllPlayers(c *gin.Context) {
 		return
 	}
 
+	// Get number of records per page.
 	limit, err := strconv.Atoi(
 		c.DefaultQuery("limit", "20"),
 	)
@@ -48,10 +50,15 @@ func (h *PlayerHandler) GetAllPlayers(c *gin.Context) {
 		return
 	}
 
+	// Get optional player name search.
+	search := c.Query("search")
+
+	// Call service.
 	result, err := h.service.GetAllPlayers(
 		c.Request.Context(),
 		page,
 		limit,
+		search,
 	)
 
 	if err != nil {
@@ -65,12 +72,14 @@ func (h *PlayerHandler) GetAllPlayers(c *gin.Context) {
 			return
 		}
 
+		// Do not expose internal database errors.
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to retrieve players",
 		})
 		return
 	}
 
+	// Convert database models into API response models.
 	playerResponses := make(
 		[]response.PlayerResponse,
 		0,
@@ -78,14 +87,17 @@ func (h *PlayerHandler) GetAllPlayers(c *gin.Context) {
 	)
 
 	for _, player := range result.Players {
+
 		playerResponses = append(
 			playerResponses,
 			response.ToPlayerResponse(player),
 		)
 	}
 
+	// Build final API response.
 	apiResponse := response.PlayerListResponse{
 		Data: playerResponses,
+
 		Pagination: response.PaginationResponse{
 			Page:         result.Page,
 			Limit:        result.Limit,
@@ -109,7 +121,10 @@ func (h *PlayerHandler) GetPlayerByID(c *gin.Context) {
 
 	if err != nil {
 
-		if errors.Is(err, services.ErrPlayerNotFound) {
+		if errors.Is(
+			err,
+			services.ErrPlayerNotFound,
+		) {
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "player not found",
 			})
@@ -122,7 +137,8 @@ func (h *PlayerHandler) GetPlayerByID(c *gin.Context) {
 		return
 	}
 
-	playerResponse := response.ToPlayerResponse(player)
+	playerResponse :=
+		response.ToPlayerResponse(player)
 
 	c.JSON(http.StatusOK, playerResponse)
 }

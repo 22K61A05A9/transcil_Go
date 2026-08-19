@@ -61,3 +61,30 @@ WHERE playerID = ?;
 -- name: CountPlayers :one
 SELECT COUNT(*)
 FROM people;
+-- name: GetPlayersByName :many
+SELECT
+    *
+FROM people
+WHERE
+    LOWER(nameFirst) LIKE CONCAT('%', LOWER(sqlc.arg(search)), '%')
+    OR LOWER(nameLast) LIKE CONCAT('%', LOWER(sqlc.arg(search)), '%')
+    OR LOWER(nameGiven) LIKE CONCAT('%', LOWER(sqlc.arg(search)), '%')
+    OR LOWER(
+        CONCAT(nameFirst, ' ', nameLast)
+    ) LIKE CONCAT(
+        '%',
+        LOWER(sqlc.arg(search)),
+        '%'
+    )
+    OR LOWER(
+        REPLACE(
+            CONCAT(nameFirst, nameLast),
+            ' ',
+            ''
+        )
+    ) LIKE CONCAT(
+        '%',
+        REPLACE(LOWER(sqlc.arg(search)), ' ', ''),
+        '%'
+    )
+ORDER BY nameLast, nameFirst;

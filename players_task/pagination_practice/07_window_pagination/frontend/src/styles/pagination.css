@@ -1,0 +1,336 @@
+/* =========================================================
+   PAGINATION CONTAINER
+========================================================= */
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+  padding: 24px 20px 30px;
+  box-sizing: border-box;
+  border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+
+
+/* =========================================================
+   PAGE BUTTON GROUP
+========================================================= */
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+
+/* =========================================================
+   PAGE NUMBER BUTTON
+========================================================= */
+
+.pagination-button {
+  min-width: 40px;
+  height: 38px;
+  padding: 0 12px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #374151;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+/* Hover */
+
+.pagination-button:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+  transform: translateY(-1px);
+}
+
+
+/* Active page */
+
+.pagination-button.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25);
+
+  transform: none;
+}
+
+
+/* =========================================================
+   ARROW BUTTONS
+========================================================= */
+
+.pagination-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+  padding: 0;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #374151;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+/* Arrow hover */
+
+.pagination-arrow:hover:not(:disabled) {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+
+  transform: translateY(-1px);
+}
+
+
+/* Disabled arrows */
+
+.pagination-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* =========================================================
+   DOTS
+========================================================= */
+
+.pagination-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 30px;
+  height: 38px;
+
+  color: #94a3b8;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   GO TO PAGE
+========================================================= */
+
+.go-to-page {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #64748b;
+
+  font-size: 13px;
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   PAGE INPUT
+========================================================= */
+
+.go-to-page input {
+  width: 70px;
+  height: 38px;
+
+  padding: 0 10px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #374151;
+
+  font-size: 13px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+/* Input focus */
+
+.go-to-page input:focus {
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+
+/* Remove number input arrows */
+
+.go-to-page input::-webkit-outer-spin-button,
+.go-to-page input::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+
+/* =========================================================
+   GO BUTTON
+========================================================= */
+
+.go-to-page button {
+  height: 38px;
+
+  padding: 0 15px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+/* Go hover */
+
+.go-to-page button:hover:not(:disabled) {
+  background: #1d4ed8;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 4px 10px rgba(37, 99, 235, 0.2);
+}
+
+
+/* Go disabled */
+
+.go-to-page button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* =========================================================
+   KEYBOARD FOCUS
+========================================================= */
+
+.pagination-button:focus-visible,
+.pagination-arrow:focus-visible,
+.go-to-page input:focus-visible,
+.go-to-page button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.2);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  .pagination-container {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .pagination {
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 2px;
+  }
+
+  .go-to-page {
+    justify-content: center;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .pagination {
+    gap: 4px;
+  }
+
+  .pagination-button {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+
+    font-size: 12px;
+  }
+
+  .pagination-arrow {
+    width: 34px;
+    height: 34px;
+
+    font-size: 14px;
+  }
+
+  .pagination-dots {
+    min-width: 22px;
+    height: 34px;
+  }
+
+  .go-to-page {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .go-to-page input {
+    width: 80px;
+  }
+}

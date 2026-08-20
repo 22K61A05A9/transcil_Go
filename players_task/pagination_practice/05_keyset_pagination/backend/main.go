@@ -46,6 +46,7 @@ func main() {
 			"http://localhost:5173",
 			"http://localhost:5174",
 			"http://localhost:5175",
+			"http://localhost:5176",
 		},
 		AllowMethods: []string{
 			"GET",
@@ -65,9 +66,9 @@ func main() {
 	)
 
 	// 8. Start server
-	log.Println("Players API running on :8081")
+	log.Println("Players API running on :8083")
 
-	if err := router.Run(":8081"); err != nil {
+	if err := router.Run(":8083"); err != nil {
 		log.Fatal(err)
 	}
 }

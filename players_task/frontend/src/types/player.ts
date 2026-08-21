@@ -33,13 +33,42 @@ export interface Player {
   retroID?: string;
   bbrefID?: string;
 }
+
 export interface Pagination {
   page: number;
   limit: number;
   totalPlayers: number;
   totalPages: number;
 }
+
 export interface PlayersResponse {
   data: Player[];
   pagination: Pagination;
+}
+
+// ========================================================
+// UPDATE PLAYER REQUEST
+// ========================================================
+
+export interface UpdatePlayerRequest {
+  nameFirst: string;
+  nameLast: string;
+  nameGiven: string;
+
+  birthYear: number | null;
+  birthMonth: number | null;
+  birthDay: number | null;
+
+  birthCountry: string;
+  birthState: string;
+  birthCity: string;
+
+  weight: number | null;
+  height: number | null;
+
+  bats: string;
+  throws: string;
+
+  debut: string;
+  finalGame: string;
 }

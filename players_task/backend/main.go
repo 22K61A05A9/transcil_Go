@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
 	"players_task/config"
 	"players_task/db"
 	"players_task/handler"
@@ -15,57 +16,96 @@ import (
 
 func main() {
 
-	// 1. Connect to MySQL
+	// ========================================================
+	// 1. CONNECT TO MYSQL
+	// ========================================================
+
 	sqlDB := config.ConnectDB()
 	defer sqlDB.Close()
 
-	// 2. Create sqlc queries
+	// ========================================================
+	// 2. CREATE SQLC QUERIES
+	// ========================================================
+
 	queries := db.New(sqlDB)
 
-	// 3. Create repository
+	// ========================================================
+	// 3. CREATE REPOSITORY
+	// ========================================================
+
 	playerRepository := repository.NewPlayerRepository(
 		queries,
 	)
 
-	// 4. Create service
+	// ========================================================
+	// 4. CREATE SERVICE
+	// ========================================================
+
 	playerService := services.NewPlayerService(
 		playerRepository,
 	)
 
-	// 5. Create handler
+	// ========================================================
+	// 5. CREATE HANDLER
+	// ========================================================
+
 	playerHandler := handlers.NewPlayerHandler(
 		playerService,
 	)
 
-	// 6. Create Gin router
+	// ========================================================
+	// 6. CREATE GIN ROUTER
+	// ========================================================
+
 	router := gin.Default()
 
-	// Enable CORS
+	// ========================================================
+	// 7. ENABLE CORS
+	// ========================================================
+
 	router.Use(cors.New(cors.Config{
+
 		AllowOrigins: []string{
 			"http://localhost:5173",
 			"http://localhost:5174",
 			"http://localhost:5175",
 		},
+
 		AllowMethods: []string{
 			"GET",
+			"POST",
+			"PUT",
+			"PATCH",
+			"DELETE",
 			"OPTIONS",
 		},
+
 		AllowHeaders: []string{
 			"Origin",
 			"Content-Type",
 			"Accept",
+			"Authorization",
 		},
+
+		AllowCredentials: true,
 	}))
 
-	// 7. Register API routes
+	// ========================================================
+	// 8. REGISTER API ROUTES
+	// ========================================================
+
 	routes.RegisterPlayerRoutes(
 		router,
 		playerHandler,
 	)
 
-	// 8. Start server
-	log.Println("Players API running on :8081")
+	// ========================================================
+	// 9. START SERVER
+	// ========================================================
+
+	log.Println(
+		"Players API running on :8081",
+	)
 
 	if err := router.Run(":8081"); err != nil {
 		log.Fatal(err)

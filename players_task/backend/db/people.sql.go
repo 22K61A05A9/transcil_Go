@@ -7,21 +7,217 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const countPlayers = `-- name: CountPlayers :one
+
+
 SELECT COUNT(*)
+
 FROM people
+
+WHERE
+
+    -- ====================================================
+    -- SEARCH
+    -- ====================================================
+
+    (
+        ? = ''
+
+        OR LOWER(nameFirst)
+            LIKE CONCAT(
+                '%',
+                LOWER(?),
+                '%'
+            )
+
+        OR LOWER(nameLast)
+            LIKE CONCAT(
+                '%',
+                LOWER(?),
+                '%'
+            )
+
+        OR LOWER(nameGiven)
+            LIKE CONCAT(
+                '%',
+                LOWER(?),
+                '%'
+            )
+
+        OR LOWER(
+            CONCAT(
+                nameFirst,
+                ' ',
+                nameLast
+            )
+        )
+        LIKE CONCAT(
+            '%',
+            LOWER(?),
+            '%'
+        )
+
+        OR LOWER(
+            REPLACE(
+                CONCAT(
+                    nameFirst,
+                    nameLast
+                ),
+                ' ',
+                ''
+            )
+        )
+        LIKE CONCAT(
+            '%',
+            REPLACE(
+                LOWER(?),
+                ' ',
+                ''
+            ),
+            '%'
+        )
+    )
+
+    -- ====================================================
+    -- BIRTH COUNTRY
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR birthCountry = ?
+    )
+
+    -- ====================================================
+    -- BIRTH STATE
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR birthState = ?
+    )
+
+    -- ====================================================
+    -- BATS
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR bats = ?
+    )
+
+    -- ====================================================
+    -- THROWS
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR throws = ?
+    )
+
+    -- ====================================================
+    -- BIRTH YEAR
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR birthYear >= ?
+    )
+
+    AND (
+        ? IS NULL
+        OR birthYear <= ?
+    )
+
+    -- ====================================================
+    -- HEIGHT
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR height >= ?
+    )
+
+    AND (
+        ? IS NULL
+        OR height <= ?
+    )
+
+    -- ====================================================
+    -- WEIGHT
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR weight >= ?
+    )
+
+    AND (
+        ? IS NULL
+        OR weight <= ?
+    )
 `
 
-func (q *Queries) CountPlayers(ctx context.Context) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countPlayers)
+type CountPlayersParams struct {
+	Search       string
+	Birthcountry sql.NullString
+	Birthstate   sql.NullString
+	Bats         sql.NullString
+	Throws       sql.NullString
+	Minbirthyear sql.NullInt32
+	Maxbirthyear sql.NullInt32
+	Minheight    sql.NullInt32
+	Maxheight    sql.NullInt32
+	Minweight    sql.NullInt32
+	Maxweight    sql.NullInt32
+}
+
+// ========================================================
+// COUNT PLAYERS
+//
+// IMPORTANT:
+// Same filters as GetAllPlayers.
+// This keeps pagination correct.
+// ========================================================
+func (q *Queries) CountPlayers(ctx context.Context, arg CountPlayersParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countPlayers,
+		arg.Search,
+		arg.Search,
+		arg.Search,
+		arg.Search,
+		arg.Search,
+		arg.Search,
+		arg.Birthcountry,
+		arg.Birthcountry,
+		arg.Birthstate,
+		arg.Birthstate,
+		arg.Bats,
+		arg.Bats,
+		arg.Throws,
+		arg.Throws,
+		arg.Minbirthyear,
+		arg.Minbirthyear,
+		arg.Maxbirthyear,
+		arg.Maxbirthyear,
+		arg.Minheight,
+		arg.Minheight,
+		arg.Maxheight,
+		arg.Maxheight,
+		arg.Minweight,
+		arg.Minweight,
+		arg.Maxweight,
+		arg.Maxweight,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
 const getAllPlayers = `-- name: GetAllPlayers :many
+
+
 SELECT
     playerID,
     birthYear,
@@ -47,19 +243,301 @@ SELECT
     finalGame,
     retroID,
     bbrefID
+
 FROM people
-ORDER BY playerID
+
+WHERE
+
+    -- ====================================================
+    -- SEARCH
+    -- ====================================================
+
+    (
+        ? = ''
+
+        OR LOWER(nameFirst)
+            LIKE CONCAT(
+                '%',
+                LOWER(?),
+                '%'
+            )
+
+        OR LOWER(nameLast)
+            LIKE CONCAT(
+                '%',
+                LOWER(?),
+                '%'
+            )
+
+        OR LOWER(nameGiven)
+            LIKE CONCAT(
+                '%',
+                LOWER(?),
+                '%'
+            )
+
+        OR LOWER(
+            CONCAT(
+                nameFirst,
+                ' ',
+                nameLast
+            )
+        )
+        LIKE CONCAT(
+            '%',
+            LOWER(?),
+            '%'
+        )
+
+        OR LOWER(
+            REPLACE(
+                CONCAT(
+                    nameFirst,
+                    nameLast
+                ),
+                ' ',
+                ''
+            )
+        )
+        LIKE CONCAT(
+            '%',
+            REPLACE(
+                LOWER(?),
+                ' ',
+                ''
+            ),
+            '%'
+        )
+    )
+
+    -- ====================================================
+    -- BIRTH COUNTRY
+    --
+    -- NULL = no filter selected
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR birthCountry = ?
+    )
+
+    -- ====================================================
+    -- BIRTH STATE
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR birthState = ?
+    )
+
+    -- ====================================================
+    -- BATS
+    -- R / L / B
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR bats = ?
+    )
+
+    -- ====================================================
+    -- THROWS
+    -- R / L
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR throws = ?
+    )
+
+    -- ====================================================
+    -- BIRTH YEAR
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR birthYear >= ?
+    )
+
+    AND (
+        ? IS NULL
+        OR birthYear <= ?
+    )
+
+    -- ====================================================
+    -- HEIGHT
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR height >= ?
+    )
+
+    AND (
+        ? IS NULL
+        OR height <= ?
+    )
+
+    -- ====================================================
+    -- WEIGHT
+    -- ====================================================
+
+    AND (
+        ? IS NULL
+        OR weight >= ?
+    )
+
+    AND (
+        ? IS NULL
+        OR weight <= ?
+    )
+
+
+ORDER BY
+
+    -- First Name ASC
+
+    CASE
+        WHEN
+            ? = 'firstName'
+            AND ? = 'asc'
+        THEN nameFirst
+    END ASC,
+
+    -- First Name DESC
+
+    CASE
+        WHEN
+            ? = 'firstName'
+            AND ? = 'desc'
+        THEN nameFirst
+    END DESC,
+
+    -- Birth Year ASC
+
+    CASE
+        WHEN
+            ? = 'birthYear'
+            AND ? = 'asc'
+        THEN birthYear
+    END ASC,
+
+    -- Birth Year DESC
+
+    CASE
+        WHEN
+            ? = 'birthYear'
+            AND ? = 'desc'
+        THEN birthYear
+    END DESC,
+
+    -- Height ASC
+
+    CASE
+        WHEN
+            ? = 'height'
+            AND ? = 'asc'
+        THEN height
+    END ASC,
+
+    -- Height DESC
+
+    CASE
+        WHEN
+            ? = 'height'
+            AND ? = 'desc'
+        THEN height
+    END DESC,
+
+    -- Stable fallback ordering
+
+    playerID ASC
+
 LIMIT ?
 OFFSET ?
 `
 
 type GetAllPlayersParams struct {
-	Limit  int32
-	Offset int32
+	Search       string
+	Birthcountry sql.NullString
+	Birthstate   sql.NullString
+	Bats         sql.NullString
+	Throws       sql.NullString
+	Minbirthyear sql.NullInt32
+	Maxbirthyear sql.NullInt32
+	Minheight    sql.NullInt32
+	Maxheight    sql.NullInt32
+	Minweight    sql.NullInt32
+	Maxweight    sql.NullInt32
+	Sortby       interface{}
+	Sortorder    interface{}
+	Limit        int32
+	Offset       int32
 }
 
+// ========================================================
+// GET ALL PLAYERS
+//
+// Supports:
+//
+//	Search
+//	Birth Country
+//	Birth State
+//	Bats
+//	Throws
+//	Birth Year range
+//	Height range
+//	Weight range
+//	Sorting
+//	Pagination
+//
+// ========================================================
+// ========================================================
+// SORTING
+// ========================================================
 func (q *Queries) GetAllPlayers(ctx context.Context, arg GetAllPlayersParams) ([]Person, error) {
-	rows, err := q.db.QueryContext(ctx, getAllPlayers, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, getAllPlayers,
+		arg.Search,
+		arg.Search,
+		arg.Search,
+		arg.Search,
+		arg.Search,
+		arg.Search,
+		arg.Birthcountry,
+		arg.Birthcountry,
+		arg.Birthstate,
+		arg.Birthstate,
+		arg.Bats,
+		arg.Bats,
+		arg.Throws,
+		arg.Throws,
+		arg.Minbirthyear,
+		arg.Minbirthyear,
+		arg.Maxbirthyear,
+		arg.Maxbirthyear,
+		arg.Minheight,
+		arg.Minheight,
+		arg.Maxheight,
+		arg.Maxheight,
+		arg.Minweight,
+		arg.Minweight,
+		arg.Maxweight,
+		arg.Maxweight,
+		arg.Sortby,
+		arg.Sortorder,
+		arg.Sortby,
+		arg.Sortorder,
+		arg.Sortby,
+		arg.Sortorder,
+		arg.Sortby,
+		arg.Sortorder,
+		arg.Sortby,
+		arg.Sortorder,
+		arg.Sortby,
+		arg.Sortorder,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -107,6 +585,8 @@ func (q *Queries) GetAllPlayers(ctx context.Context, arg GetAllPlayersParams) ([
 }
 
 const getPlayerByID = `-- name: GetPlayerByID :one
+
+
 SELECT
     playerID,
     birthYear,
@@ -132,10 +612,15 @@ SELECT
     finalGame,
     retroID,
     bbrefID
+
 FROM people
+
 WHERE playerID = ?
 `
 
+// ========================================================
+// GET PLAYER BY ID
+// ========================================================
 func (q *Queries) GetPlayerByID(ctx context.Context, playerid string) (Person, error) {
 	row := q.db.QueryRowContext(ctx, getPlayerByID, playerid)
 	var i Person
@@ -168,89 +653,71 @@ func (q *Queries) GetPlayerByID(ctx context.Context, playerid string) (Person, e
 	return i, err
 }
 
-const getPlayersByName = `-- name: GetPlayersByName :many
-SELECT
-    playerid, birthyear, birthmonth, birthday, birthcountry, birthstate, birthcity, deathyear, deathmonth, deathday, deathcountry, deathstate, deathcity, namefirst, namelast, namegiven, weight, height, bats, throws, debut, finalgame, retroid, bbrefid
-FROM people
-WHERE
-    LOWER(nameFirst) LIKE CONCAT('%', LOWER(?), '%')
-    OR LOWER(nameLast) LIKE CONCAT('%', LOWER(?), '%')
-    OR LOWER(nameGiven) LIKE CONCAT('%', LOWER(?), '%')
-    OR LOWER(
-        CONCAT(nameFirst, ' ', nameLast)
-    ) LIKE CONCAT(
-        '%',
-        LOWER(?),
-        '%'
-    )
-    OR LOWER(
-        REPLACE(
-            CONCAT(nameFirst, nameLast),
-            ' ',
-            ''
-        )
-    ) LIKE CONCAT(
-        '%',
-        REPLACE(LOWER(?), ' ', ''),
-        '%'
-    )
-ORDER BY nameLast, nameFirst
+const updatePlayer = `-- name: UpdatePlayer :exec
+
+
+UPDATE people
+
+SET
+    nameFirst = ?,
+    nameLast = ?,
+    nameGiven = ?,
+    birthYear = ?,
+    birthMonth = ?,
+    birthDay = ?,
+    birthCountry = ?,
+    birthState = ?,
+    birthCity = ?,
+    weight = ?,
+    height = ?,
+    bats = ?,
+    throws = ?,
+    debut = ?,
+    finalGame = ?
+
+WHERE playerID = ?
 `
 
-type GetPlayersByNameParams struct {
-	Search string
+type UpdatePlayerParams struct {
+	Namefirst    sql.NullString
+	Namelast     sql.NullString
+	Namegiven    sql.NullString
+	Birthyear    sql.NullInt32
+	Birthmonth   sql.NullInt32
+	Birthday     sql.NullInt32
+	Birthcountry sql.NullString
+	Birthstate   sql.NullString
+	Birthcity    sql.NullString
+	Weight       sql.NullInt32
+	Height       sql.NullInt32
+	Bats         sql.NullString
+	Throws       sql.NullString
+	Debut        sql.NullString
+	Finalgame    sql.NullString
+	Playerid     string
 }
 
-func (q *Queries) GetPlayersByName(ctx context.Context, arg GetPlayersByNameParams) ([]Person, error) {
-	rows, err := q.db.QueryContext(ctx, getPlayersByName,
-		arg.Search,
-		arg.Search,
-		arg.Search,
-		arg.Search,
-		arg.Search,
+// ========================================================
+// UPDATE PLAYER
+// ========================================================
+func (q *Queries) UpdatePlayer(ctx context.Context, arg UpdatePlayerParams) error {
+	_, err := q.db.ExecContext(ctx, updatePlayer,
+		arg.Namefirst,
+		arg.Namelast,
+		arg.Namegiven,
+		arg.Birthyear,
+		arg.Birthmonth,
+		arg.Birthday,
+		arg.Birthcountry,
+		arg.Birthstate,
+		arg.Birthcity,
+		arg.Weight,
+		arg.Height,
+		arg.Bats,
+		arg.Throws,
+		arg.Debut,
+		arg.Finalgame,
+		arg.Playerid,
 	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Person
-	for rows.Next() {
-		var i Person
-		if err := rows.Scan(
-			&i.Playerid,
-			&i.Birthyear,
-			&i.Birthmonth,
-			&i.Birthday,
-			&i.Birthcountry,
-			&i.Birthstate,
-			&i.Birthcity,
-			&i.Deathyear,
-			&i.Deathmonth,
-			&i.Deathday,
-			&i.Deathcountry,
-			&i.Deathstate,
-			&i.Deathcity,
-			&i.Namefirst,
-			&i.Namelast,
-			&i.Namegiven,
-			&i.Weight,
-			&i.Height,
-			&i.Bats,
-			&i.Throws,
-			&i.Debut,
-			&i.Finalgame,
-			&i.Retroid,
-			&i.Bbrefid,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+	return err
 }

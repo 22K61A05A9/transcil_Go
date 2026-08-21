@@ -19,4 +19,5 @@ func RegisterPlayerRoutes(
 		"/players/:id",
 		playerHandler.GetPlayerByID,
 	)
+	router.PUT("/players/:id", playerHandler.UpdatePlayer)
 }

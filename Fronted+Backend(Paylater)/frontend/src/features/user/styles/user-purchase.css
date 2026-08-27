@@ -3,7 +3,7 @@
 .user-purchase {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-8);
   width: 100%;
   max-width: 36rem;
 }
@@ -31,8 +31,12 @@
   padding: 0.7rem 0.85rem;
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-bg-elevated);
+  background: var(--color-surface);
   color: var(--color-text);
+  font-size: var(--text-sm);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .user-purchase__input:focus-visible {
@@ -90,6 +94,8 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .user-purchase__submit:hover:not(:disabled) {

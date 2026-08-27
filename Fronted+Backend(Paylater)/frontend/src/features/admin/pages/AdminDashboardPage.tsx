@@ -4,7 +4,7 @@ import {
   useState,
   type ReactElement,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import {
   getAdminById,
@@ -18,11 +18,18 @@ import type {
   AdminTransaction,
   ReportUserRow,
 } from '@/features/admin/types'
-import { formatMoneyDisplay } from '@/features/user/lib/money'
+import {
+  ReportUserCards,
+  ReportUserTable,
+} from '@/features/admin/components/ReportUserViews'
+import { formatMoneyDisplay } from '@/shared/lib/money'
 import { isApiError } from '@/shared/api/errors'
+import { mapApiErrorMessage } from '@/shared/lib/apiErrorMessage'
 import { useAuth } from '@/shared/auth/useAuth'
-import { getRoleDisplayLabel } from '@/shared/ui/layout/navConfig'
-import '@/features/user/styles/user-dashboard.css'
+import { getRoleDisplayLabel } from '@/shared/auth/roles'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import '@/shared/styles/page-shell.css'
 import '@/features/admin/styles/admin-dashboard.css'
 
 type SectionKey =
@@ -60,91 +67,6 @@ const QUICK_ACTIONS = [
   { label: 'Platform Reports', path: '/admin/reports', description: 'Due balances & limits' },
   { label: 'My Profile', path: '/admin/profile', description: 'Your admin account' },
 ] as const
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  if (isApiError(error)) {
-    if (error.status === 0) {
-      return 'Unable to reach the server. Check your connection and try again.'
-    }
-    if (error.status >= 500) {
-      return 'Something went wrong on our side. Please try again.'
-    }
-    return error.message || fallback
-  }
-  return fallback
-}
-
-function ReportUserCards({
-  rows,
-  emptyMessage,
-}: {
-  rows: ReportUserRow[]
-  emptyMessage: string
-}): ReactElement {
-  if (rows.length === 0) {
-    return <p className="user-dashboard__empty">{emptyMessage}</p>
-  }
-
-  return (
-    <div className="admin-users__mobile-cards">
-      {rows.map((row) => (
-        <div key={row.id} className="admin-users__card">
-          <div className="admin-users__card-header">
-            <span className="admin-users__card-title">{row.user_name}</span>
-            <span className="admin-users__card-id">ID: {row.id}</span>
-          </div>
-          <div className="admin-users__card-body">
-            <div className="admin-users__card-row">
-              <span className="admin-users__card-label">Credit Limit</span>
-              <span className="admin-users__card-value">{formatMoneyDisplay(row.credit_limit)}</span>
-            </div>
-            <div className="admin-users__card-row">
-              <span className="admin-users__card-label">Current Due</span>
-              <span className="admin-users__card-value">{formatMoneyDisplay(row.current_due)}</span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function ReportUserTable({
-  rows,
-  emptyMessage,
-}: {
-  rows: ReportUserRow[]
-  emptyMessage: string
-}): ReactElement {
-  if (rows.length === 0) {
-    return <p className="user-dashboard__empty">{emptyMessage}</p>
-  }
-
-  return (
-    <div className="user-dashboard__table-wrap admin-users__table-desktop">
-      <table className="user-dashboard__table">
-        <thead>
-          <tr>
-            <th scope="col">User ID</th>
-            <th scope="col">User Name</th>
-            <th scope="col">Credit Limit</th>
-            <th scope="col">Current Due</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.id}>
-              <td>{row.id}</td>
-              <td>{row.user_name}</td>
-              <td>{formatMoneyDisplay(row.credit_limit)}</td>
-              <td>{formatMoneyDisplay(row.current_due)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
 
 function RecentTransactionTable({
   rows,
@@ -264,8 +186,7 @@ function SectionErrorBanner({
 }
 
 export function AdminDashboardPage(): ReactElement {
-  const navigate = useNavigate()
-  const { role, userId, logout } = useAuth()
+  const { role, userId } = useAuth()
 
   const [data, setData] = useState<AdminDashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -294,17 +215,12 @@ export function AdminDashboardPage(): ReactElement {
 
     const results = await Promise.allSettled(promises)
 
-    const handleUnauthorized = (error: unknown): boolean => {
-      if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
-        return true
-      }
-      return false
-    }
-
     for (const result of results) {
-      if (result.status === 'rejected' && handleUnauthorized(result.reason)) {
+      if (
+        result.status === 'rejected' &&
+        isApiError(result.reason) &&
+        result.reason.status === 401
+      ) {
         return
       }
     }
@@ -329,7 +245,7 @@ export function AdminDashboardPage(): ReactElement {
         if (isApiError(result.reason) && result.reason.status === 403) {
           forbiddenCount += 1
         }
-        sectionErrors[key] = getErrorMessage(
+        sectionErrors[key] = mapApiErrorMessage(
           result.reason,
           `Unable to load ${key}.`,
         )
@@ -388,7 +304,7 @@ export function AdminDashboardPage(): ReactElement {
       sectionErrors,
     })
     setIsLoading(false)
-  }, [logout, navigate, userId])
+  }, [userId])
 
   useEffect(() => {
     void loadDashboard()
@@ -397,41 +313,24 @@ export function AdminDashboardPage(): ReactElement {
   const roleLabel = role === null ? 'Administration' : getRoleDisplayLabel(role)
 
   if (isLoading && data === null && fatalError === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading administration dashboard…</p>
-      </div>
-    )
+    return <PageLoadingState message="Loading administration dashboard…" live />
   }
 
   if (fatalError !== null && data === null) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">
-          {isForbidden ? 'Access denied' : 'Unable to load dashboard'}
-        </h1>
-        <p className="user-dashboard__error-message">{fatalError}</p>
-        {!isForbidden ? (
-          <button
-            type="button"
-            className="user-dashboard__retry"
-            onClick={() => {
-              setReloadKey((key) => key + 1)
-            }}
-          >
-            Retry
-          </button>
-        ) : null}
-      </div>
+      <PageLoadError
+        title={isForbidden ? 'Access denied' : 'Unable to load dashboard'}
+        message={fatalError}
+        onRetry={() => {
+          setReloadKey((key) => key + 1)
+        }}
+        showRetry={!isForbidden}
+      />
     )
   }
 
   if (data === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">No dashboard data available.</p>
-      </div>
-    )
+    return <PageLoadingState message="No dashboard data available." />
   }
 
   const {
@@ -446,7 +345,7 @@ export function AdminDashboardPage(): ReactElement {
   const adminName = adminProfile?.admin_name ?? 'Admin'
 
   return (
-    <div className="admin-dashboard user-dashboard">
+    <div className="admin-dashboard user-dashboard pl-page">
       <header className="user-dashboard__welcome">
         <p className="user-dashboard__eyebrow admin-dashboard__eyebrow">
           Administration

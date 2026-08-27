@@ -1,0 +1,58 @@
+/* Shared transaction ledger list patterns */
+
+.user-transactions__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.user-transactions__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.user-transactions__cards-mobile {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.user-transactions__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--color-border);
+}
+
+.user-transactions__card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.user-transactions__card-label {
+  color: var(--color-text-secondary);
+  font-weight: var(--weight-medium);
+}
+
+@media (max-width: 768px) {
+  .user-transactions__table-desktop {
+    display: none;
+  }
+
+  .user-transactions__cards-mobile {
+    display: flex;
+  }
+}

@@ -6,7 +6,7 @@ import {
   type FormEvent,
   type ReactElement,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import {
   getMerchantById,
@@ -14,27 +14,17 @@ import {
 } from '@/features/merchant/api/merchantApi'
 import type { MerchantProfile } from '@/features/merchant/types'
 import { isApiError } from '@/shared/api/errors'
+import { mapApiErrorMessage } from '@/shared/lib/apiErrorMessage'
 import { useAuth } from '@/shared/auth/useAuth'
 import { showToast } from '@/shared/ui/toastState'
-import '@/features/user/styles/user-dashboard.css'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import { PageSkeleton } from '@/shared/ui/PageSkeleton'
+import '@/shared/styles/page-shell.css'
 import '@/shared/styles/profile-page.css'
 
-function getErrorMessage(error: unknown): string {
-  if (isApiError(error)) {
-    if (error.status === 0) {
-      return 'Unable to reach the server. Check your connection and try again.'
-    }
-    if (error.status >= 500) {
-      return 'Something went wrong on our side. Please try again.'
-    }
-    return error.message || 'Unable to load your profile.'
-  }
-  return 'Unable to load your profile.'
-}
-
 export function MerchantProfilePage(): ReactElement {
-  const navigate = useNavigate()
-  const { userId, logout } = useAuth()
+  const { userId } = useAuth()
 
   const [profile, setProfile] = useState<MerchantProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -64,8 +54,6 @@ export function MerchantProfilePage(): ReactElement {
       setEditPhone(data.phone_number)
     } catch (error) {
       if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
         return
       }
       setProfile(null)
@@ -75,12 +63,12 @@ export function MerchantProfilePage(): ReactElement {
           error.message || 'You do not have access to this merchant profile.',
         )
       } else {
-        setErrorMessage(getErrorMessage(error))
+        setErrorMessage(mapApiErrorMessage(error, 'Unable to load your profile.'))
       }
     } finally {
       setIsLoading(false)
     }
-  }, [userId, logout, navigate])
+  }, [userId])
 
   useEffect(() => {
     void loadProfile()
@@ -152,8 +140,6 @@ export function MerchantProfilePage(): ReactElement {
       showToast('Profile updated successfully', 'success')
     } catch (error) {
       if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
         return
       }
       const msg = isApiError(error)
@@ -166,28 +152,19 @@ export function MerchantProfilePage(): ReactElement {
   }
 
   if (userId === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">Sign in required.</p>
-      </div>
-    )
+    return <PageLoadingState message="Sign in required." />
   }
 
   if (isLoading && profile === null && errorMessage === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading your profile…</p>
-      </div>
-    )
+    return <PageSkeleton label="Loading your merchant profile" variant="profile" />
   }
 
   if (errorMessage !== null && profile === null) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">
-          {isForbidden ? 'Access denied' : 'Unable to load profile'}
-        </h1>
-        <p className="user-dashboard__error-message">{errorMessage}</p>
+      <PageLoadError
+        title={isForbidden ? 'Access denied' : 'Unable to load profile'}
+        message={errorMessage}
+      >
         {isForbidden ? (
           <Link
             className="user-dashboard__action user-dashboard__action--enabled"
@@ -206,23 +183,19 @@ export function MerchantProfilePage(): ReactElement {
             Retry
           </button>
         )}
-      </div>
+      </PageLoadError>
     )
   }
 
   if (profile === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">No profile data available.</p>
-      </div>
-    )
+    return <PageLoadingState message="No profile data available." />
   }
 
   const phoneDisplay =
     profile.phone_number.trim() === '' ? '—' : profile.phone_number
 
   return (
-    <div className="profile-page">
+    <div className="profile-page pl-page">
       <header className="user-dashboard__welcome">
         <p className="user-dashboard__eyebrow">Merchant account</p>
         <h1 className="user-dashboard__title">Profile</h1>

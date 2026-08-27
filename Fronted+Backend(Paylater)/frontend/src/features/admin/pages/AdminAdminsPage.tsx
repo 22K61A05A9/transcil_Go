@@ -6,7 +6,7 @@ import {
   type FormEvent,
   type ChangeEvent,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import {
   getAdmins,
@@ -15,15 +15,17 @@ import {
   deleteAdmin,
 } from '@/features/admin/api/adminApi'
 import type { AdminProfile, AdminRole } from '@/features/admin/types'
-import { isApiError } from '@/shared/api/errors'
+import { AdminModal } from '@/features/admin/components/AdminModal'
+import { createAdminApiErrorHandler } from '@/features/admin/lib/adminApiError'
 import { useAuth } from '@/shared/auth/useAuth'
 import { showToast } from '@/shared/ui/toastState'
-import '@/features/user/styles/user-dashboard.css'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import '@/shared/styles/page-shell.css'
 import '@/features/admin/styles/admin-dashboard.css'
 
 export function AdminAdminsPage(): ReactElement {
-  const navigate = useNavigate()
-  const { role, userId, logout } = useAuth()
+  const { role, userId } = useAuth()
   const isSuperAdmin = role === 'SUPER_ADMIN'
 
   // Data states
@@ -54,24 +56,7 @@ export function AdminAdminsPage(): ReactElement {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deletingError, setDeletingError] = useState<string | null>(null)
 
-  const handleApiError = useCallback((error: unknown, fallback: string): string => {
-    if (isApiError(error)) {
-      if (error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
-        return 'Session expired. Logging out...'
-      }
-      if (error.status === 403) {
-        setIsForbidden(true)
-        return 'Access denied. You do not have permissions for this resource.'
-      }
-      if (error.status === 0) {
-        return 'Unable to reach the server. Check your connection.'
-      }
-      return error.message || fallback
-    }
-    return fallback
-  }, [logout, navigate])
+  const handleApiError = useCallback(createAdminApiErrorHandler(setIsForbidden), [])
 
   const loadAdmins = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -178,35 +163,22 @@ export function AdminAdminsPage(): ReactElement {
   }
 
   if (isLoading && admins.length === 0 && fatalError === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading administrator accounts…</p>
-      </div>
-    )
+    return <PageLoadingState message="Loading administrator accounts…" live />
   }
 
   if (fatalError !== null && admins.length === 0) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">
-          {isForbidden ? 'Access denied' : 'Unable to load admins'}
-        </h1>
-        <p className="user-dashboard__error-message">{fatalError}</p>
-        {!isForbidden ? (
-          <button
-            type="button"
-            className="user-dashboard__retry"
-            onClick={() => setReloadKey((key) => key + 1)}
-          >
-            Retry
-          </button>
-        ) : null}
-      </div>
+      <PageLoadError
+        title={isForbidden ? 'Access denied' : 'Unable to load admins'}
+        message={fatalError}
+        onRetry={() => setReloadKey((key) => key + 1)}
+        showRetry={!isForbidden}
+      />
     )
   }
 
   return (
-    <div className="admin-dashboard user-dashboard">
+    <div className="admin-dashboard user-dashboard pl-page">
       <header className="user-dashboard__welcome">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
           <div>
@@ -368,19 +340,11 @@ export function AdminAdminsPage(): ReactElement {
 
       {/* Create Admin Modal (SUPER_ADMIN only) */}
       {isCreateOpen && isSuperAdmin ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <form onSubmit={(e: FormEvent) => void handleCreateSubmit(e)}>
-              <header className="admin-modal-header">
-                <h2 className="admin-modal-title">Create Admin Account</h2>
-                <button
-                  type="button"
-                  className="admin-modal-close"
-                  onClick={() => setIsCreateOpen(false)}
-                >
-                  &times;
-                </button>
-              </header>
+        <AdminModal
+          title="Create Admin Account"
+          onClose={() => setIsCreateOpen(false)}
+          onSubmit={(e: FormEvent) => void handleCreateSubmit(e)}
+        >
               <div className="admin-modal-body">
                 {createError !== null ? (
                   <p className="admin-dashboard__card-error" style={{ margin: 0 }}>
@@ -464,25 +428,12 @@ export function AdminAdminsPage(): ReactElement {
                   {isCreating ? 'Creating...' : 'Create Admin'}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+        </AdminModal>
       ) : null}
 
       {/* View Admin Details Modal */}
       {viewAdmin !== null ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <header className="admin-modal-header">
-              <h2 className="admin-modal-title">Admin Account Details</h2>
-              <button
-                type="button"
-                className="admin-modal-close"
-                onClick={() => setViewAdmin(null)}
-              >
-                &times;
-              </button>
-            </header>
+        <AdminModal title="Admin Account Details" onClose={() => setViewAdmin(null)}>
             <div className="admin-modal-body">
               <div className="admin-details-list">
                 <div className="admin-details-row">
@@ -513,26 +464,19 @@ export function AdminAdminsPage(): ReactElement {
                 Close
               </button>
             </div>
-          </div>
-        </div>
+        </AdminModal>
       ) : null}
 
       {/* Delete Confirmation Modal (SUPER_ADMIN only) */}
       {deleteAdminObj !== null && isSuperAdmin ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <header className="admin-modal-header">
-              <h2 className="admin-modal-title" style={{ color: 'var(--color-danger)' }}>
-                Delete Administrator Account
-              </h2>
-              <button
-                type="button"
-                className="admin-modal-close"
-                onClick={() => setDeleteAdminObj(null)}
-              >
-                &times;
-              </button>
-            </header>
+        <AdminModal
+          title={
+            <span style={{ color: 'var(--color-danger)' }}>
+              Delete Administrator Account
+            </span>
+          }
+          onClose={() => setDeleteAdminObj(null)}
+        >
             <div className="admin-modal-body">
               {deletingError !== null ? (
                 <p className="admin-dashboard__card-error" style={{ margin: 0 }}>
@@ -564,8 +508,7 @@ export function AdminAdminsPage(): ReactElement {
                 {isDeleting ? 'Deleting...' : 'Delete Admin'}
               </button>
             </div>
-          </div>
-        </div>
+        </AdminModal>
       ) : null}
     </div>
   )

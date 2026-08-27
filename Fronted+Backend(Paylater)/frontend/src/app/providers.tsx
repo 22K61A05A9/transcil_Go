@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode } from 'react'
-
+/** reactnode is used for children */
 import { AuthProvider } from '@/shared/auth/AuthProvider'
 
 type AppProvidersProps = {

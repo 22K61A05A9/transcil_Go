@@ -5,25 +5,24 @@ import {
   type ReactElement,
   type ChangeEvent,
 } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 import {
   getAdminTransactions,
   getAdminTransactionById,
 } from '@/features/admin/api/adminApi'
 import type { AdminTransaction } from '@/features/admin/types'
-import { formatMoneyDisplay } from '@/features/user/lib/money'
-import { isApiError } from '@/shared/api/errors'
-import { useAuth } from '@/shared/auth/useAuth'
+import { formatMoneyDisplay } from '@/shared/lib/money'
+import { AdminModal } from '@/features/admin/components/AdminModal'
+import { createAdminApiErrorHandler } from '@/features/admin/lib/adminApiError'
 import { showToast } from '@/shared/ui/toastState'
-import '@/features/user/styles/user-dashboard.css'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import '@/shared/styles/page-shell.css'
 import '@/features/admin/styles/admin-dashboard.css'
 
 type FilterType = 'ALL' | 'PURCHASE' | 'PAYBACK'
 
 export function AdminTransactionsPage(): ReactElement {
-  const navigate = useNavigate()
-  const { logout } = useAuth()
 
   // Data states
   const [transactions, setTransactions] = useState<AdminTransaction[]>([])
@@ -40,24 +39,7 @@ export function AdminTransactionsPage(): ReactElement {
   const [viewTx, setViewTx] = useState<AdminTransaction | null>(null)
   const [isViewingLoading, setIsViewingLoading] = useState(false)
 
-  const handleApiError = useCallback((error: unknown, fallback: string): string => {
-    if (isApiError(error)) {
-      if (error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
-        return 'Session expired. Logging out...'
-      }
-      if (error.status === 403) {
-        setIsForbidden(true)
-        return 'Access denied. You do not have permissions for this resource.'
-      }
-      if (error.status === 0) {
-        return 'Unable to reach the server. Check your connection.'
-      }
-      return error.message || fallback
-    }
-    return fallback
-  }, [logout, navigate])
+  const handleApiError = useCallback(createAdminApiErrorHandler(setIsForbidden), [])
 
   const loadTransactions = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -115,35 +97,22 @@ export function AdminTransactionsPage(): ReactElement {
   }
 
   if (isLoading && transactions.length === 0 && fatalError === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading ledger transactions…</p>
-      </div>
-    )
+    return <PageLoadingState message="Loading ledger transactions…" live />
   }
 
   if (fatalError !== null && transactions.length === 0) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">
-          {isForbidden ? 'Access denied' : 'Unable to load transactions'}
-        </h1>
-        <p className="user-dashboard__error-message">{fatalError}</p>
-        {!isForbidden ? (
-          <button
-            type="button"
-            className="user-dashboard__retry"
-            onClick={() => setReloadKey((key) => key + 1)}
-          >
-            Retry
-          </button>
-        ) : null}
-      </div>
+      <PageLoadError
+        title={isForbidden ? 'Access denied' : 'Unable to load transactions'}
+        message={fatalError}
+        onRetry={() => setReloadKey((key) => key + 1)}
+        showRetry={!isForbidden}
+      />
     )
   }
 
   return (
-    <div className="admin-dashboard user-dashboard">
+    <div className="admin-dashboard user-dashboard pl-page">
       <header className="user-dashboard__welcome">
         <p className="user-dashboard__eyebrow admin-dashboard__eyebrow">
           Administration
@@ -296,66 +265,54 @@ export function AdminTransactionsPage(): ReactElement {
 
       {/* Transaction Details Modal */}
       {viewTx !== null ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <header className="admin-modal-header">
-              <h2 className="admin-modal-title">Transaction Details</h2>
-              <button
-                type="button"
-                className="admin-modal-close"
-                onClick={() => setViewTx(null)}
-              >
-                &times;
-              </button>
-            </header>
-            <div className="admin-modal-body">
-              <div className="admin-details-list">
-                <div className="admin-details-row">
-                  <span className="admin-details-label">Transaction ID</span>
-                  <span className="admin-details-value">{viewTx.id}</span>
-                </div>
-                <div className="admin-details-row">
-                  <span className="admin-details-label">User ID</span>
-                  <span className="admin-details-value">{viewTx.user_id}</span>
-                </div>
-                <div className="admin-details-row">
-                  <span className="admin-details-label">Merchant ID</span>
-                  <span className="admin-details-value">
-                    {viewTx.merchant_id.Valid ? viewTx.merchant_id.Int32 : '—'}
-                  </span>
-                </div>
-                <div className="admin-details-row">
-                  <span className="admin-details-label">Transaction Type</span>
-                  <span className="admin-details-value">{viewTx.transaction_type}</span>
-                </div>
-                <div className="admin-details-row">
-                  <span className="admin-details-label">Amount</span>
-                  <span className="admin-details-value" style={{ fontWeight: 'var(--weight-semibold)' }}>
-                    {formatMoneyDisplay(viewTx.amount)}
-                  </span>
-                </div>
-                <div className="admin-details-row">
-                  <span className="admin-details-label">Commission Fee</span>
-                  <span className="admin-details-value">{formatMoneyDisplay(viewTx.commission)}</span>
-                </div>
-                <div className="admin-details-row">
-                  <span className="admin-details-label">Commission Percentage</span>
-                  <span className="admin-details-value">{viewTx.commission_percentage}%</span>
-                </div>
+        <AdminModal title="Transaction Details" onClose={() => setViewTx(null)}>
+          <div className="admin-modal-body">
+            <div className="admin-details-list">
+              <div className="admin-details-row">
+                <span className="admin-details-label">Transaction ID</span>
+                <span className="admin-details-value">{viewTx.id}</span>
+              </div>
+              <div className="admin-details-row">
+                <span className="admin-details-label">User ID</span>
+                <span className="admin-details-value">{viewTx.user_id}</span>
+              </div>
+              <div className="admin-details-row">
+                <span className="admin-details-label">Merchant ID</span>
+                <span className="admin-details-value">
+                  {viewTx.merchant_id.Valid ? viewTx.merchant_id.Int32 : '—'}
+                </span>
+              </div>
+              <div className="admin-details-row">
+                <span className="admin-details-label">Transaction Type</span>
+                <span className="admin-details-value">{viewTx.transaction_type}</span>
+              </div>
+              <div className="admin-details-row">
+                <span className="admin-details-label">Amount</span>
+                <span className="admin-details-value" style={{ fontWeight: 'var(--weight-semibold)' }}>
+                  {formatMoneyDisplay(viewTx.amount)}
+                </span>
+              </div>
+              <div className="admin-details-row">
+                <span className="admin-details-label">Commission Fee</span>
+                <span className="admin-details-value">{formatMoneyDisplay(viewTx.commission)}</span>
+              </div>
+              <div className="admin-details-row">
+                <span className="admin-details-label">Commission Percentage</span>
+                <span className="admin-details-value">{viewTx.commission_percentage}%</span>
               </div>
             </div>
-            <div className="admin-modal-footer">
-              <button
-                type="button"
-                className="user-dashboard__retry"
-                style={{ background: 'var(--color-secondary)' }}
-                onClick={() => setViewTx(null)}
-              >
-                Close
-              </button>
-            </div>
           </div>
-        </div>
+          <div className="admin-modal-footer">
+            <button
+              type="button"
+              className="user-dashboard__retry"
+              style={{ background: 'var(--color-secondary)' }}
+              onClick={() => setViewTx(null)}
+            >
+              Close
+            </button>
+          </div>
+        </AdminModal>
       ) : null}
     </div>
   )

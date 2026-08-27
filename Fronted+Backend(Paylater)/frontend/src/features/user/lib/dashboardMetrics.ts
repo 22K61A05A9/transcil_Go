@@ -1,4 +1,4 @@
-import { addMoney, subtractMoney } from '@/features/user/lib/money'
+import { addMoney, subtractMoney } from '@/shared/lib/money'
 import type { UserProfile, UserTransaction } from '@/features/user/types'
 
 export type UserDashboardMetrics = {

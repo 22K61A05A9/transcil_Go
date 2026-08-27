@@ -5,31 +5,21 @@ import {
   useState,
   type ReactElement,
 } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 import { getUserTransactions } from '@/features/user/api/userApi'
 import { sortTransactionsByIdDesc } from '@/features/user/lib/dashboardMetrics'
-import { formatMoneyDisplay } from '@/features/user/lib/money'
 import type { TransactionType, UserTransaction } from '@/features/user/types'
 import { isApiError } from '@/shared/api/errors'
+import { mapApiErrorMessage } from '@/shared/lib/apiErrorMessage'
 import { useAuth } from '@/shared/auth/useAuth'
-import '@/features/user/styles/user-dashboard.css'
+import { CurrencyAmount } from '@/shared/ui/CurrencyAmount'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import { PageSkeleton } from '@/shared/ui/PageSkeleton'
+import '@/shared/styles/page-shell.css'
 import '@/features/user/styles/user-transactions.css'
 
 type TxFilter = 'ALL' | TransactionType
-
-function getErrorMessage(error: unknown): string {
-  if (isApiError(error)) {
-    if (error.status === 0) {
-      return 'Unable to reach the server. Check your connection and try again.'
-    }
-    if (error.status >= 500) {
-      return 'Something went wrong on our side. Please try again.'
-    }
-    return error.message || 'Unable to load your transactions.'
-  }
-  return 'Unable to load your transactions.'
-}
 
 function countByType(
   transactions: readonly UserTransaction[],
@@ -42,8 +32,7 @@ function countByType(
 }
 
 export function UserTransactionsPage(): ReactElement {
-  const navigate = useNavigate()
-  const { userId, logout } = useAuth()
+  const { userId } = useAuth()
 
   const [transactions, setTransactions] = useState<UserTransaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -64,16 +53,14 @@ export function UserTransactionsPage(): ReactElement {
       setTransactions(sortTransactionsByIdDesc(rows))
     } catch (error) {
       if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
         return
       }
       setTransactions([])
-      setErrorMessage(getErrorMessage(error))
+      setErrorMessage(mapApiErrorMessage(error, 'Unable to load your transactions.'))
     } finally {
       setIsLoading(false)
     }
-  }, [userId, logout, navigate])
+  }, [userId])
 
   useEffect(() => {
     void loadTransactions()
@@ -96,41 +83,27 @@ export function UserTransactionsPage(): ReactElement {
   }, [transactions, filter])
 
   if (userId === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">Sign in required.</p>
-      </div>
-    )
+    return <PageLoadingState message="Sign in required." />
   }
 
   if (isLoading && transactions.length === 0 && errorMessage === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading your transactions…</p>
-      </div>
-    )
+    return <PageSkeleton label="Loading your transactions" />
   }
 
   if (errorMessage !== null && transactions.length === 0) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">Unable to load transactions</h1>
-        <p className="user-dashboard__error-message">{errorMessage}</p>
-        <button
-          type="button"
-          className="user-dashboard__retry"
-          onClick={() => {
-            setReloadKey((key) => key + 1)
-          }}
-        >
-          Retry
-        </button>
-      </div>
+      <PageLoadError
+        title="Unable to load transactions"
+        message={errorMessage}
+        onRetry={() => {
+          setReloadKey((key) => key + 1)
+        }}
+      />
     )
   }
 
   return (
-    <div className="user-transactions">
+    <div className="user-transactions pl-page">
       <header className="user-dashboard__welcome">
         <p className="user-dashboard__eyebrow">Customer ledger</p>
         <h1 className="user-dashboard__title">Transactions</h1>
@@ -189,13 +162,27 @@ export function UserTransactionsPage(): ReactElement {
         </div>
 
         {transactions.length === 0 ? (
-          <p className="user-dashboard__empty">
-            No transactions yet. Purchases and paybacks will appear here.
-          </p>
+          <div className="user-dashboard__empty-state" role="status">
+            <span className="user-dashboard__empty-icon" aria-hidden="true">
+              ∅
+            </span>
+            <p className="user-dashboard__empty-title">No transactions yet</p>
+            <p className="user-dashboard__empty">
+              Purchases and paybacks will appear here once you start using PayLater.
+            </p>
+          </div>
         ) : visibleTransactions.length === 0 ? (
-          <p className="user-dashboard__empty">
-            No {filter === 'PURCHASE' ? 'purchases' : 'paybacks'} in your ledger.
-          </p>
+          <div className="user-dashboard__empty-state" role="status">
+            <span className="user-dashboard__empty-icon" aria-hidden="true">
+              ∅
+            </span>
+            <p className="user-dashboard__empty-title">
+              No {filter === 'PURCHASE' ? 'purchases' : 'paybacks'} found
+            </p>
+            <p className="user-dashboard__empty">
+              Try a different filter to see more of your ledger.
+            </p>
+          </div>
         ) : (
           <>
             <div className="user-dashboard__table-wrap user-transactions__table-desktop">
@@ -225,8 +212,12 @@ export function UserTransactionsPage(): ReactElement {
                           {tx.transaction_type}
                         </span>
                       </td>
-                      <td>{formatMoneyDisplay(tx.amount)}</td>
-                      <td>{formatMoneyDisplay(tx.commission)}</td>
+                      <td className="user-dashboard__amount-cell">
+                        <CurrencyAmount value={tx.amount} />
+                      </td>
+                      <td>
+                        <CurrencyAmount value={tx.commission} />
+                      </td>
                       <td>{tx.commission_percentage}</td>
                       <td>
                         {tx.merchant_id.Valid ? tx.merchant_id.Int32 : '—'}
@@ -258,11 +249,15 @@ export function UserTransactionsPage(): ReactElement {
                   </div>
                   <div className="user-transactions__card-row">
                     <span className="user-transactions__card-label">Amount</span>
-                    <span>{formatMoneyDisplay(tx.amount)}</span>
+                    <span className="user-dashboard__amount-cell">
+                      <CurrencyAmount value={tx.amount} />
+                    </span>
                   </div>
                   <div className="user-transactions__card-row">
                     <span className="user-transactions__card-label">Commission</span>
-                    <span>{formatMoneyDisplay(tx.commission)}</span>
+                    <span>
+                      <CurrencyAmount value={tx.commission} />
+                    </span>
                   </div>
                   <div className="user-transactions__card-row">
                     <span className="user-transactions__card-label">Commission %</span>

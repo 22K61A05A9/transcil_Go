@@ -6,6 +6,8 @@ import {
 
 import { ProtectedRoute } from '@/app/routing/ProtectedRoute'
 import { PublicOnlyRoute } from '@/app/routing/PublicOnlyRoute'
+import { RouterRoot } from '@/app/RouterRoot'
+import { GUEST_ROUTE_PATHS } from '@/shared/config/guestAccess'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { MerchantRegisterPage } from '@/features/auth/pages/MerchantRegisterPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
@@ -24,8 +26,8 @@ import { UserPaybackPage } from '@/features/user/pages/UserPaybackPage'
 import { UserPurchasePage } from '@/features/user/pages/UserPurchasePage'
 import { UserTransactionsPage } from '@/features/user/pages/UserTransactionsPage'
 import { UserProfilePage } from '@/features/user/pages/UserProfilePage'
-import { AppShell } from '@/shared/ui/layout/AppShell'
-import { PlaceholderPage } from '@/shared/ui/PlaceholderPage'
+import { NotFoundPage } from '@/app/routing/NotFoundPage'
+import { AppShell } from '@/shared/layout/AppShell'
 import '@/app/routing/unauthorized.css'
 
 /**
@@ -37,13 +39,13 @@ import '@/app/routing/unauthorized.css'
  *
  * Protected areas nest: ProtectedRoute → AppShell → page Outlet.
  */
-export const appRoutes: RouteObject[] = [
+const routeTable: RouteObject[] = [
   {
     path: '/',
-    element: <Navigate to="/login" replace />,
+    element: <Navigate to={GUEST_ROUTE_PATHS.login} replace />,
   },
   {
-    path: '/login',
+    path: GUEST_ROUTE_PATHS.login,
     element: <PublicOnlyRoute />,
     children: [
       {
@@ -53,7 +55,7 @@ export const appRoutes: RouteObject[] = [
     ],
   },
   {
-    path: '/register',
+    path: GUEST_ROUTE_PATHS.register,
     element: <PublicOnlyRoute />,
     children: [
       {
@@ -63,7 +65,7 @@ export const appRoutes: RouteObject[] = [
     ],
   },
   {
-    path: '/merchant/register',
+    path: GUEST_ROUTE_PATHS.merchantRegister,
     element: <PublicOnlyRoute />,
     children: [
       {
@@ -77,6 +79,7 @@ export const appRoutes: RouteObject[] = [
     element: <ProtectedRoute allowedRoles={['user']} />,
     children: [
       {
+        /**no path bcz this is a layout route -- without changing the url it wrap the pages in appshell */
         element: <AppShell />,
         children: [
           { index: true, element: <UserDashboardPage /> },
@@ -84,7 +87,7 @@ export const appRoutes: RouteObject[] = [
           { path: 'purchase', element: <UserPurchasePage /> },
           { path: 'payback', element: <UserPaybackPage /> },
           { path: 'profile', element: <UserProfilePage /> },
-          { path: '*', element: <UserDashboardPage /> },
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],
@@ -99,7 +102,7 @@ export const appRoutes: RouteObject[] = [
           { index: true, element: <MerchantDashboardPage /> },
           { path: 'transactions', element: <MerchantTransactionsPage /> },
           { path: 'profile', element: <MerchantProfilePage /> },
-          { path: '*', element: <MerchantDashboardPage /> },
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],
@@ -118,14 +121,21 @@ export const appRoutes: RouteObject[] = [
           { path: 'reports', element: <AdminReportsPage /> },
           { path: 'admins', element: <AdminAdminsPage /> },
           { path: 'profile', element: <AdminProfilePage /> },
-          { path: '*', element: <AdminDashboardPage /> },
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],
   },
   {
     path: '*',
-    element: <PlaceholderPage title="404 - Not Found" description="The page you are looking for does not exist." />,
+    element: <NotFoundPage standalone />,
+  },
+]
+
+export const appRoutes: RouteObject[] = [
+  {
+    element: <RouterRoot />,
+    children: routeTable,
   },
 ]
 

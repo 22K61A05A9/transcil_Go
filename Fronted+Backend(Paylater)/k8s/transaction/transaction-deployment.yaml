@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: transaction
+  namespace: paylater
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: transaction
+
+  template:
+    metadata:
+      labels:
+        app: transaction
+
+    spec:
+      containers:
+        - name: transaction
+          image: frontedbackendpaylater-transaction
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 9092
+
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            # Non-sensitive database configuration
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: paylater-config
+                  key: DB_HOST
+
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: paylater-config
+                  key: DB_PORT
+
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: paylater-config
+                  key: DB_NAME
+
+            # Sensitive configuration
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: transaction-secret
+                  key: DB_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: transaction-secret
+                  key: DB_PASSWORD
+
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: transaction-secret
+                  key: JWT_SECRET
+
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: transaction-secret
+                  key: INTERNAL_SERVICE_TOKEN
+
+            # Internal Kubernetes service URLs
+            - name: USER_SERVICE_URL
+              value: http://user:9091
+
+            - name: MERCHANT_SERVICE_URL
+              value: http://merchant:9094
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9092
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9092
+            initialDelaySeconds: 30
+            periodSeconds: 10

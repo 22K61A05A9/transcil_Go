@@ -6,7 +6,6 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 import {
   getAdminUsers,
@@ -15,16 +14,16 @@ import {
   deleteAdminUser,
 } from '@/features/admin/api/adminApi'
 import type { AdminUser } from '@/features/admin/types'
-import { formatMoneyDisplay } from '@/features/user/lib/money'
-import { isApiError } from '@/shared/api/errors'
-import { useAuth } from '@/shared/auth/useAuth'
+import { formatMoneyDisplay } from '@/shared/lib/money'
+import { AdminModal } from '@/features/admin/components/AdminModal'
+import { createAdminApiErrorHandler } from '@/features/admin/lib/adminApiError'
 import { showToast } from '@/shared/ui/toastState'
-import '@/features/user/styles/user-dashboard.css'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import '@/shared/styles/page-shell.css'
 import '@/features/admin/styles/admin-dashboard.css'
 
 export function AdminUsersPage(): ReactElement {
-  const navigate = useNavigate()
-  const { logout } = useAuth()
 
   // Data states
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -49,24 +48,7 @@ export function AdminUsersPage(): ReactElement {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deletingError, setDeletingError] = useState<string | null>(null)
 
-  const handleApiError = useCallback((error: unknown, fallback: string): string => {
-    if (isApiError(error)) {
-      if (error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
-        return 'Session expired. Logging out...'
-      }
-      if (error.status === 403) {
-        setIsForbidden(true)
-        return 'Access denied. You do not have permissions for this resource.'
-      }
-      if (error.status === 0) {
-        return 'Unable to reach the server. Check your connection.'
-      }
-      return error.message || fallback
-    }
-    return fallback
-  }, [logout, navigate])
+  const handleApiError = useCallback(createAdminApiErrorHandler(setIsForbidden), [])
 
   const loadUsers = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -171,35 +153,22 @@ export function AdminUsersPage(): ReactElement {
   }
 
   if (isLoading && users.length === 0 && fatalError === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading users list…</p>
-      </div>
-    )
+    return <PageLoadingState message="Loading users list…" live />
   }
 
   if (fatalError !== null && users.length === 0) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">
-          {isForbidden ? 'Access denied' : 'Unable to load users'}
-        </h1>
-        <p className="user-dashboard__error-message">{fatalError}</p>
-        {!isForbidden ? (
-          <button
-            type="button"
-            className="user-dashboard__retry"
-            onClick={() => setReloadKey((key) => key + 1)}
-          >
-            Retry
-          </button>
-        ) : null}
-      </div>
+      <PageLoadError
+        title={isForbidden ? 'Access denied' : 'Unable to load users'}
+        message={fatalError}
+        onRetry={() => setReloadKey((key) => key + 1)}
+        showRetry={!isForbidden}
+      />
     )
   }
 
   return (
-    <div className="admin-dashboard user-dashboard">
+    <div className="admin-dashboard user-dashboard pl-page">
       <header className="user-dashboard__welcome">
         <p className="user-dashboard__eyebrow admin-dashboard__eyebrow">
           Administration
@@ -349,160 +318,129 @@ export function AdminUsersPage(): ReactElement {
 
       {/* View User Details Modal */}
       {viewUser !== null ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <header className="admin-modal-header">
-              <h2 className="admin-modal-title">User Details</h2>
-              <button
-                type="button"
-                className="admin-modal-close"
-                onClick={() => setViewUser(null)}
-              >
-                &times;
-              </button>
-            </header>
-            <div className="admin-modal-body">
-              <div className="admin-details-list">
-                <div className="admin-details-row">
-                  <span className="admin-details-label">User ID</span>
-                  <span className="admin-details-value">{viewUser.id}</span>
-                </div>
-                <div className="admin-details-row">
-                  <span className="admin-details-label">User Name</span>
-                  <span className="admin-details-value">{viewUser.user_name}</span>
-                </div>
-                <div className="admin-details-row">
-                  <span className="admin-details-label">Credit Limit</span>
-                  <span className="admin-details-value">{formatMoneyDisplay(viewUser.credit_limit)}</span>
-                </div>
-                <div className="admin-details-row">
-                  <span className="admin-details-label">Current Due</span>
-                  <span className="admin-details-value">{formatMoneyDisplay(viewUser.current_due)}</span>
-                </div>
+        <AdminModal title="User Details" onClose={() => setViewUser(null)}>
+          <div className="admin-modal-body">
+            <div className="admin-details-list">
+              <div className="admin-details-row">
+                <span className="admin-details-label">User ID</span>
+                <span className="admin-details-value">{viewUser.id}</span>
+              </div>
+              <div className="admin-details-row">
+                <span className="admin-details-label">User Name</span>
+                <span className="admin-details-value">{viewUser.user_name}</span>
+              </div>
+              <div className="admin-details-row">
+                <span className="admin-details-label">Credit Limit</span>
+                <span className="admin-details-value">{formatMoneyDisplay(viewUser.credit_limit)}</span>
+              </div>
+              <div className="admin-details-row">
+                <span className="admin-details-label">Current Due</span>
+                <span className="admin-details-value">{formatMoneyDisplay(viewUser.current_due)}</span>
               </div>
             </div>
-            <div className="admin-modal-footer">
-              <button
-                type="button"
-                className="user-dashboard__retry"
-                style={{ background: 'var(--color-secondary)' }}
-                onClick={() => setViewUser(null)}
-              >
-                Close
-              </button>
-            </div>
           </div>
-        </div>
+          <div className="admin-modal-footer">
+            <button
+              type="button"
+              className="user-dashboard__retry"
+              style={{ background: 'var(--color-secondary)' }}
+              onClick={() => setViewUser(null)}
+            >
+              Close
+            </button>
+          </div>
+        </AdminModal>
       ) : null}
 
       {/* Edit User Name Modal */}
       {editUser !== null ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <form onSubmit={(e: FormEvent) => void handleUpdateSubmit(e)}>
-              <header className="admin-modal-header">
-                <h2 className="admin-modal-title">Edit User Name</h2>
-                <button
-                  type="button"
-                  className="admin-modal-close"
-                  onClick={() => setEditUser(null)}
-                >
-                  &times;
-                </button>
-              </header>
-              <div className="admin-modal-body">
-                {updatingError !== null ? (
-                  <p className="admin-dashboard__card-error" style={{ margin: 0 }}>
-                    {updatingError}
-                  </p>
-                ) : null}
-                <div className="admin-form-group">
-                  <label className="admin-form-label" htmlFor="edit-user-name">
-                    User Name
-                  </label>
-                  <input
-                    type="text"
-                    id="edit-user-name"
-                    className="admin-form-input"
-                    value={editName}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setEditName(e.target.value)}
-                    required
-                    disabled={isUpdating}
-                  />
-                </div>
-              </div>
-              <div className="admin-modal-footer">
-                <button
-                  type="button"
-                  className="user-dashboard__retry"
-                  style={{ background: 'var(--color-secondary)' }}
-                  onClick={() => setEditUser(null)}
-                  disabled={isUpdating}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="user-dashboard__retry"
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
+        <AdminModal
+          title="Edit User Name"
+          onClose={() => setEditUser(null)}
+          onSubmit={(e: FormEvent) => void handleUpdateSubmit(e)}
+        >
+          <div className="admin-modal-body">
+            {updatingError !== null ? (
+              <p className="admin-dashboard__card-error" style={{ margin: 0 }}>
+                {updatingError}
+              </p>
+            ) : null}
+            <div className="admin-form-group">
+              <label className="admin-form-label" htmlFor="edit-user-name">
+                User Name
+              </label>
+              <input
+                type="text"
+                id="edit-user-name"
+                className="admin-form-input"
+                value={editName}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setEditName(e.target.value)}
+                required
+                disabled={isUpdating}
+              />
+            </div>
           </div>
-        </div>
+          <div className="admin-modal-footer">
+            <button
+              type="button"
+              className="user-dashboard__retry"
+              style={{ background: 'var(--color-secondary)' }}
+              onClick={() => setEditUser(null)}
+              disabled={isUpdating}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="user-dashboard__retry"
+              disabled={isUpdating}
+            >
+              {isUpdating ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </AdminModal>
       ) : null}
 
       {/* Delete User Confirmation Modal */}
       {deleteUser !== null ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <header className="admin-modal-header">
-              <h2 className="admin-modal-title" style={{ color: 'var(--color-danger)' }}>
-                Delete User
-              </h2>
-              <button
-                type="button"
-                className="admin-modal-close"
-                onClick={() => setDeleteUser(null)}
-              >
-                &times;
-              </button>
-            </header>
-            <div className="admin-modal-body">
-              {deletingError !== null ? (
-                <p className="admin-dashboard__card-error" style={{ margin: 0 }}>
-                  {deletingError}
-                </p>
-              ) : null}
-              <p className="user-dashboard__subtitle" style={{ color: 'var(--color-text)' }}>
-                Are you sure you want to delete user <strong>{deleteUser.user_name}</strong> (ID: {deleteUser.id})?
-                This action is permanent and cannot be undone.
+        <AdminModal
+          title={
+            <span style={{ color: 'var(--color-danger)' }}>Delete User</span>
+          }
+          onClose={() => setDeleteUser(null)}
+        >
+          <div className="admin-modal-body">
+            {deletingError !== null ? (
+              <p className="admin-dashboard__card-error" style={{ margin: 0 }}>
+                {deletingError}
               </p>
-            </div>
-            <div className="admin-modal-footer">
-              <button
-                type="button"
-                className="user-dashboard__retry"
-                style={{ background: 'var(--color-secondary)' }}
-                onClick={() => setDeleteUser(null)}
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="user-dashboard__retry"
-                style={{ background: 'var(--color-danger)' }}
-                onClick={() => void handleDeleteSubmit()}
-                disabled={isDeleting}
-              >
-                {isDeleting ? 'Deleting...' : 'Delete User'}
-              </button>
-            </div>
+            ) : null}
+            <p className="user-dashboard__subtitle" style={{ color: 'var(--color-text)' }}>
+              Are you sure you want to delete user <strong>{deleteUser.user_name}</strong> (ID: {deleteUser.id})?
+              This action is permanent and cannot be undone.
+            </p>
           </div>
-        </div>
+          <div className="admin-modal-footer">
+            <button
+              type="button"
+              className="user-dashboard__retry"
+              style={{ background: 'var(--color-secondary)' }}
+              onClick={() => setDeleteUser(null)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="user-dashboard__retry"
+              style={{ background: 'var(--color-danger)' }}
+              onClick={() => void handleDeleteSubmit()}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Delete User'}
+            </button>
+          </div>
+        </AdminModal>
       ) : null}
     </div>
   )

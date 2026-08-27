@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: report
+  namespace: paylater
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: report
+
+  template:
+    metadata:
+      labels:
+        app: report
+
+    spec:
+      containers:
+        - name: report
+          image: frontedbackendpaylater-report
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 9095
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: USER_SERVICE_URL
+              value: http://user:9091
+
+            - name: TRANSACTION_SERVICE_URL
+              value: http://transaction:9092
+
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: report-secret
+                  key: JWT_SECRET
+
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: report-secret
+                  key: INTERNAL_SERVICE_TOKEN
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9095
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9095
+            initialDelaySeconds: 30
+            periodSeconds: 10

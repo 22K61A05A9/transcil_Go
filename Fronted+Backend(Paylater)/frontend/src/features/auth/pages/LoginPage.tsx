@@ -66,12 +66,11 @@ export function LoginPage(): ReactElement {
     window.requestAnimationFrame(() => {
       registerTriggerRef.current?.focus()
     })
-  }, [])
+  }, []) 
 
   async function handleSubmit(email: string, password: string): Promise<void> {
     setErrorMessage(null)
     setIsSubmitting(true)
-
     try {
       const response = await loginByActor(role, { email, password })
       login(response.token)

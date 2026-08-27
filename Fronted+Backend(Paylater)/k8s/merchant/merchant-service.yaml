@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: merchant
+  namespace: paylater
+
+spec:
+  selector:
+    app: merchant
+
+  ports:
+    - protocol: TCP
+      port: 9094
+      targetPort: 9094
+
+  type: ClusterIP

@@ -24,7 +24,7 @@ type MerchantRegisterFormProps = {
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const PHONE_PATTERN = /^[+\d][\d\s()-]{6,19}$/
+const PHONE_PATTERN = /^[6-9]\d{9}$/
 
 function validateForm(values: MerchantRegisterFormValues): string | null {
   const merchantName = values.merchantName.trim()
@@ -36,13 +36,14 @@ function validateForm(values: MerchantRegisterFormValues): string | null {
   if (email === '') {
     return 'Email is required.'
   }
+
   if (!EMAIL_PATTERN.test(email)) {
     return 'Enter a valid email address.'
   }
 
   const phone = values.phoneNumber.trim()
   if (phone !== '' && !PHONE_PATTERN.test(phone)) {
-    return 'Enter a valid phone number, or leave it blank.'
+    return 'Enter a valid 10-digit phone number starting with 6, 7, 8, or 9, or leave it blank.'
   }
 
   if (values.password.trim() === '') {
@@ -52,6 +53,7 @@ function validateForm(values: MerchantRegisterFormValues): string | null {
   if (values.confirmPassword.trim() === '') {
     return 'Confirm your password.'
   }
+
   if (values.password !== values.confirmPassword) {
     return 'Password and confirm password must match.'
   }
@@ -60,10 +62,12 @@ function validateForm(values: MerchantRegisterFormValues): string | null {
   if (commissionRaw === '') {
     return 'Commission percentage is required.'
   }
+
   const commission = Number(commissionRaw)
   if (!Number.isFinite(commission)) {
     return 'Commission percentage must be a number.'
   }
+
   if (commission < 3 || commission > 10) {
     return 'Commission percentage must be between 3 and 10.'
   }
@@ -194,11 +198,15 @@ export function MerchantRegisterForm({
           type="tel"
           name="phone_number"
           autoComplete="tel"
-          placeholder="+91 98765 43210"
+          inputMode="numeric"
+          placeholder="9876543210"
           value={phoneNumber}
+          maxLength={10}
+          pattern="[6-9][0-9]{9}"
           disabled={isSubmitting}
           onChange={(event) => {
-            setPhoneNumber(event.target.value)
+            const value = event.target.value.replace(/\D/g, '').slice(0, 10)
+            setPhoneNumber(value)
             setClientError(null)
           }}
         />

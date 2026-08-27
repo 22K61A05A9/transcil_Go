@@ -5,6 +5,8 @@ import {
   apiPost,
   apiPut,
 } from '@/shared/api/client'
+import type { MessageResponse } from '@/shared/api/dtos'
+import { assertMessageResponse } from '@/shared/api/response'
 import type {
   AdminMerchant,
   AdminProfile,
@@ -14,7 +16,6 @@ import type {
   CreateAdminMerchantRequest,
   CreateAdminRequest,
   MerchantFeeResponse,
-  MessageResponse,
   ReportUserRow,
   TotalDueResponse,
   UpdateAdminMerchantRequest,
@@ -22,13 +23,6 @@ import type {
   UpdateMerchantCommissionRequest,
   UserDueResponse,
 } from '@/features/admin/types'
-
-function assertMessageResponse(data: MessageResponse, label: string): MessageResponse {
-  if (typeof data.message !== 'string' || data.message.trim() === '') {
-    throw new Error(`Unexpected ${label} response shape`)
-  }
-  return data
-}
 
 function isAdminRole(value: string): value is AdminRole {
   return value === 'ADMIN' || value === 'SUPER_ADMIN'
@@ -258,26 +252,6 @@ export async function getAdminTransactions(): Promise<AdminTransaction[]> {
 export async function getAdminTransactionById(id: number): Promise<AdminTransaction> {
   const response = await apiGet<AdminTransaction>(`/transactions/${id}`)
   return assertAdminTransaction(response)
-}
-
-/** GET /transactions/user/:user_id */
-export async function getAdminTransactionsByUser(
-  userId: number,
-): Promise<AdminTransaction[]> {
-  const response = await apiGet<AdminTransaction[] | null>(
-    `/transactions/user/${userId}`,
-  )
-  return normalizeList(response, 'user transactions list', assertAdminTransaction)
-}
-
-/** GET /transactions/merchant/:merchant_id */
-export async function getAdminTransactionsByMerchant(
-  merchantId: number,
-): Promise<AdminTransaction[]> {
-  const response = await apiGet<AdminTransaction[] | null>(
-    `/transactions/merchant/${merchantId}`,
-  )
-  return normalizeList(response, 'merchant transactions list', assertAdminTransaction)
 }
 
 // ---------- Reports ----------

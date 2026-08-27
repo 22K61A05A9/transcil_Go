@@ -6,19 +6,23 @@ import {
   type FormEvent,
   type ReactElement,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { createPayback, getUserById } from '@/features/user/api/userApi'
 import {
   centsToMoney,
   formatMoneyDisplay,
   moneyToCents,
-} from '@/features/user/lib/money'
+} from '@/shared/lib/money'
 import type { CreatePaybackRequest } from '@/features/user/types'
 import { isApiError } from '@/shared/api/errors'
 import { useAuth } from '@/shared/auth/useAuth'
+import { CurrencyAmount } from '@/shared/ui/CurrencyAmount'
 import { showToast } from '@/shared/ui/toastState'
-import '@/features/user/styles/user-dashboard.css'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import { PageSkeleton } from '@/shared/ui/PageSkeleton'
+import '@/shared/styles/page-shell.css'
 import '@/features/user/styles/user-purchase.css'
 import '@/features/user/styles/user-payback.css'
 
@@ -51,8 +55,7 @@ function getPaybackErrorMessage(error: unknown): string {
 }
 
 export function UserPaybackPage(): ReactElement {
-  const navigate = useNavigate()
-  const { userId, logout } = useAuth()
+  const { userId } = useAuth()
 
   const amountField = useId()
   const errorId = useId()
@@ -83,8 +86,6 @@ export function UserPaybackPage(): ReactElement {
       setCurrentDue(profile.current_due)
     } catch (error) {
       if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
         return
       }
       setCurrentDue(null)
@@ -98,7 +99,7 @@ export function UserPaybackPage(): ReactElement {
     } finally {
       setIsLoadingDue(false)
     }
-  }, [userId, logout, navigate])
+  }, [userId])
 
   useEffect(() => {
     void loadCurrentDue()
@@ -148,8 +149,6 @@ export function UserPaybackPage(): ReactElement {
       }
     } catch (error) {
       if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
         return
       }
       const errMsg = getPaybackErrorMessage(error)
@@ -161,40 +160,25 @@ export function UserPaybackPage(): ReactElement {
   }
 
   if (userId === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">Sign in required.</p>
-      </div>
-    )
+    return <PageLoadingState message="Sign in required." />
   }
 
   if (isLoadingDue && currentDue === null && loadError === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading your current due…</p>
-      </div>
-    )
+    return <PageSkeleton label="Loading your current due" variant="form" />
   }
 
   if (loadError !== null && currentDue === null) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">Unable to load payback</h1>
-        <p className="user-dashboard__error-message">{loadError}</p>
-        <button
-          type="button"
-          className="user-dashboard__retry"
-          onClick={() => {
-            setReloadKey((key) => key + 1)
-          }}
-        >
-          Retry
-        </button>
-      </div>
+      <PageLoadError
+        title="Unable to load payback"
+        message={loadError}
+        onRetry={() => {
+          setReloadKey((key) => key + 1)
+        }}
+      />
     )
   }
 
-  const dueDisplay = currentDue === null ? '—' : formatMoneyDisplay(currentDue)
   const hasNoDue =
     currentDue !== null &&
     (() => {
@@ -206,7 +190,7 @@ export function UserPaybackPage(): ReactElement {
     })()
 
   return (
-    <div className="user-payback">
+    <div className="user-payback pl-page">
       <header className="user-dashboard__welcome">
         <p className="user-dashboard__eyebrow">Customer payment</p>
         <h1 className="user-dashboard__title">Pay back</h1>
@@ -217,17 +201,25 @@ export function UserPaybackPage(): ReactElement {
       </header>
 
       <section className="user-dashboard__cards" aria-label="Outstanding balance">
-        <article className="user-dashboard__card">
+        <article className="user-dashboard__card user-dashboard__card--due">
           <p className="user-dashboard__card-label">Current Due</p>
-          <p className="user-dashboard__card-value">{dueDisplay}</p>
+          <p className="user-dashboard__card-value">
+            {currentDue === null ? '—' : <CurrencyAmount value={currentDue} />}
+          </p>
         </article>
       </section>
 
       <section className="user-dashboard__section" aria-label="Payback form">
         {hasNoDue ? (
-          <p className="user-dashboard__empty">
-            You have no outstanding balance to pay right now.
-          </p>
+          <div className="user-dashboard__empty-state" role="status">
+            <span className="user-dashboard__empty-icon" aria-hidden="true">
+              ✓
+            </span>
+            <p className="user-dashboard__empty-title">All caught up</p>
+            <p className="user-dashboard__empty">
+              You have no outstanding balance to pay right now.
+            </p>
+          </div>
         ) : (
           <form
             className="user-purchase__form"

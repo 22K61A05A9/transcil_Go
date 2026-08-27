@@ -13,7 +13,7 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./backend/docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpass"]
       interval: 5s
@@ -24,11 +24,11 @@ services:
   user:
     build:
       context: .
-      dockerfile: services/user/Dockerfile
+      dockerfile: backend/services/user/Dockerfile
     container_name: paylater-user
     restart: unless-stopped
     env_file:
-      - ./services/user/.env
+      - ./backend/services/user/.env
     depends_on:
       mysql:
         condition: service_healthy
@@ -44,11 +44,11 @@ services:
   merchant:
     build:
       context: .
-      dockerfile: services/merchant/Dockerfile
+      dockerfile: backend/services/merchant/Dockerfile
     container_name: paylater-merchant
     restart: unless-stopped
     env_file:
-      - ./services/merchant/.env
+      - ./backend/services/merchant/.env
     depends_on:
       mysql:
         condition: service_healthy
@@ -64,11 +64,11 @@ services:
   transaction:
     build:
       context: .
-      dockerfile: services/transaction/Dockerfile
+      dockerfile: backend/services/transaction/Dockerfile
     container_name: paylater-transaction
     restart: unless-stopped
     env_file:
-      - ./services/transaction/.env
+      - ./backend/services/transaction/.env
     depends_on:
       mysql:
         condition: service_healthy
@@ -88,11 +88,11 @@ services:
   admin:
     build:
       context: .
-      dockerfile: services/admin/Dockerfile
+      dockerfile: backend/services/admin/Dockerfile
     container_name: paylater-admin
     restart: unless-stopped
     env_file:
-      - ./services/admin/.env
+      - ./backend/services/admin/.env
     depends_on:
       mysql:
         condition: service_healthy
@@ -108,11 +108,11 @@ services:
   report:
     build:
       context: .
-      dockerfile: services/report/Dockerfile
+      dockerfile: backend/services/report/Dockerfile
     container_name: paylater-report
     restart: unless-stopped
     env_file:
-      - ./services/report/.env
+      - ./backend/services/report/.env
     depends_on:
       user:
         condition: service_healthy
@@ -130,11 +130,11 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: services/gateway/Dockerfile
+      dockerfile: backend/services/gateway/Dockerfile
     container_name: paylater-gateway
     restart: unless-stopped
     env_file:
-      - ./services/gateway/.env
+      - ./backend/services/gateway/.env
     depends_on:
       user:
         condition: service_healthy
@@ -160,7 +160,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_BASE_URL=http://localhost:9090
+        - VITE_API_BASE_URL=/api
     container_name: paylater-frontend
     restart: unless-stopped
     ports:

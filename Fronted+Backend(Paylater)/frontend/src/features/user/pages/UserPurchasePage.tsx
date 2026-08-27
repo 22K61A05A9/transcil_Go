@@ -6,21 +6,20 @@ import {
   type FormEvent,
   type ReactElement,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import {
   createPurchase,
   getAvailableMerchants,
 } from '@/features/user/api/userApi'
-import { centsToMoney, moneyToCents } from '@/features/user/lib/money'
+import { centsToMoney, moneyToCents } from '@/shared/lib/money'
 import type {
   AvailableMerchant,
   CreatePurchaseRequest,
 } from '@/features/user/types'
 import { isApiError } from '@/shared/api/errors'
-import { useAuth } from '@/shared/auth/useAuth'
 import { showToast } from '@/shared/ui/toastState'
-import '@/features/user/styles/user-dashboard.css'
+import '@/shared/styles/page-shell.css'
 import '@/features/user/styles/user-purchase.css'
 
 function normalizePurchaseAmount(raw: string): string | null {
@@ -76,8 +75,6 @@ function getCatalogErrorMessage(error: unknown): string {
 }
 
 export function UserPurchasePage(): ReactElement {
-  const navigate = useNavigate()
-  const { logout } = useAuth()
 
   const merchantField = useId()
   const amountField = useId()
@@ -116,8 +113,6 @@ export function UserPurchasePage(): ReactElement {
       setSelectedMerchantId('')
     } catch (error) {
       if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
         return
       }
       setMerchants([])
@@ -126,7 +121,7 @@ export function UserPurchasePage(): ReactElement {
     } finally {
       setIsLoadingMerchants(false)
     }
-  }, [logout, navigate])
+  }, [])
 
   useEffect(() => {
     void loadMerchants()
@@ -160,8 +155,6 @@ export function UserPurchasePage(): ReactElement {
       setAmountInput('')
     } catch (error) {
       if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
         return
       }
       const errMsg = getPurchaseErrorMessage(error)
@@ -173,7 +166,7 @@ export function UserPurchasePage(): ReactElement {
   }
 
   return (
-    <div className="user-purchase">
+    <div className="user-purchase pl-page">
       <header className="user-dashboard__welcome">
         <p className="user-dashboard__eyebrow">Customer purchase</p>
         <h1 className="user-dashboard__title">Make a purchase</h1>
@@ -185,9 +178,7 @@ export function UserPurchasePage(): ReactElement {
 
       <section className="user-dashboard__section" aria-label="Purchase form">
         {isLoadingMerchants ? (
-          <p className="user-dashboard__loading" role="status" aria-live="polite">
-            Loading merchants…
-          </p>
+          <div className="user-dashboard__skeleton user-dashboard__skeleton--section" aria-busy="true" aria-label="Loading merchants" />
         ) : null}
 
         {!isLoadingMerchants && catalogError !== null ? (
@@ -206,9 +197,15 @@ export function UserPurchasePage(): ReactElement {
         ) : null}
 
         {!isLoadingMerchants && catalogError === null && merchants.length === 0 ? (
-          <p className="user-dashboard__empty" role="status">
-            No merchants are currently available.
-          </p>
+          <div className="user-dashboard__empty-state" role="status">
+            <span className="user-dashboard__empty-icon" aria-hidden="true">
+              ∅
+            </span>
+            <p className="user-dashboard__empty-title">No merchants available</p>
+            <p className="user-dashboard__empty">
+              Check back later when merchants are available for purchases.
+            </p>
+          </div>
         ) : null}
 
         {hasCatalog ? (

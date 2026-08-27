@@ -4,7 +4,7 @@ import {
   useState,
   type ReactElement,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import {
   getMerchantById,
@@ -19,12 +19,15 @@ import type {
   MerchantProfile,
   MerchantTransaction,
 } from '@/features/merchant/types'
-import { formatMoneyDisplay } from '@/features/user/lib/money'
 import { isApiError } from '@/shared/api/errors'
+import { mapApiErrorMessage } from '@/shared/lib/apiErrorMessage'
 import { useAuth } from '@/shared/auth/useAuth'
-import '@/features/user/styles/user-dashboard.css'
+import { CurrencyAmount } from '@/shared/ui/CurrencyAmount'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import { PageSkeleton } from '@/shared/ui/PageSkeleton'
+import '@/shared/styles/page-shell.css'
 import '@/features/merchant/styles/merchant-dashboard.css'
-import '@/features/admin/styles/admin-dashboard.css'
 
 const RECENT_LIMIT = 5
 
@@ -36,22 +39,8 @@ type MerchantDashboardData = {
   transactionsError: string | null
 }
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  if (isApiError(error)) {
-    if (error.status === 0) {
-      return 'Unable to reach the server. Check your connection and try again.'
-    }
-    if (error.status >= 500) {
-      return 'Something went wrong on our side. Please try again.'
-    }
-    return error.message || fallback
-  }
-  return fallback
-}
-
 export function MerchantDashboardPage(): ReactElement {
-  const navigate = useNavigate()
-  const { userId, logout } = useAuth()
+  const { userId } = useAuth()
 
   const [data, setData] = useState<MerchantDashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -73,22 +62,16 @@ export function MerchantDashboardPage(): ReactElement {
 
     const [profileOutcome, transactionsOutcome] = profileResult
 
-    const handleUnauthorized = (error: unknown): boolean => {
-      if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
-        return true
-      }
-      return false
-    }
-
     if (profileOutcome.status === 'rejected') {
-      if (handleUnauthorized(profileOutcome.reason)) {
+      if (
+        isApiError(profileOutcome.reason) &&
+        profileOutcome.reason.status === 401
+      ) {
         return
       }
       setData(null)
       setErrorMessage(
-        getErrorMessage(profileOutcome.reason, 'Unable to load your dashboard.'),
+        mapApiErrorMessage(profileOutcome.reason, 'Unable to load your dashboard.'),
       )
       setIsLoading(false)
       return
@@ -97,7 +80,10 @@ export function MerchantDashboardPage(): ReactElement {
     const profile = profileOutcome.value
 
     if (transactionsOutcome.status === 'rejected') {
-      if (handleUnauthorized(transactionsOutcome.reason)) {
+      if (
+        isApiError(transactionsOutcome.reason) &&
+        transactionsOutcome.reason.status === 401
+      ) {
         return
       }
       setData({
@@ -105,7 +91,7 @@ export function MerchantDashboardPage(): ReactElement {
         metrics: null,
         recent: [],
         hasTransactions: false,
-        transactionsError: getErrorMessage(
+        transactionsError: mapApiErrorMessage(
           transactionsOutcome.reason,
           'Unable to load merchant transactions.',
         ),
@@ -123,52 +109,34 @@ export function MerchantDashboardPage(): ReactElement {
       transactionsError: null,
     })
     setIsLoading(false)
-  }, [userId, logout, navigate])
+  }, [userId])
 
   useEffect(() => {
     void loadDashboard()
   }, [loadDashboard, reloadKey])
 
   if (userId === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">Sign in required.</p>
-      </div>
-    )
+    return <PageLoadingState message="Sign in required." />
   }
 
   if (isLoading && data === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading your merchant dashboard…</p>
-      </div>
-    )
+    return <PageSkeleton label="Loading your merchant dashboard" variant="dashboard" />
   }
 
   if (errorMessage !== null && data === null) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">Unable to load dashboard</h1>
-        <p className="user-dashboard__error-message">{errorMessage}</p>
-        <button
-          type="button"
-          className="user-dashboard__retry"
-          onClick={() => {
-            setReloadKey((key) => key + 1)
-          }}
-        >
-          Retry
-        </button>
-      </div>
+      <PageLoadError
+        title="Unable to load dashboard"
+        message={errorMessage}
+        onRetry={() => {
+          setReloadKey((key) => key + 1)
+        }}
+      />
     )
   }
 
   if (data === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">No dashboard data available.</p>
-      </div>
-    )
+    return <PageLoadingState message="No dashboard data available." />
   }
 
   const { profile, metrics, recent, hasTransactions, transactionsError } = data
@@ -176,13 +144,16 @@ export function MerchantDashboardPage(): ReactElement {
     profile.phone_number.trim() === '' ? '—' : profile.phone_number
 
   return (
-    <div className="merchant-dashboard user-dashboard">
-      <header className="user-dashboard__welcome">
-        <p className="user-dashboard__eyebrow">Merchant dashboard</p>
-        <h1 className="user-dashboard__title">Welcome, {profile.merchant_name}</h1>
-        <p className="user-dashboard__subtitle">
-          Business overview based on your merchant profile and purchase ledger.
-        </p>
+    <div className="merchant-dashboard user-dashboard pl-page">
+      <header className="user-dashboard__hero">
+        <div className="user-dashboard__hero-content">
+          <p className="user-dashboard__eyebrow">Merchant dashboard</p>
+          <h1 className="user-dashboard__title">Welcome, {profile.merchant_name}</h1>
+          <p className="user-dashboard__subtitle">
+            Business overview based on your merchant profile and purchase ledger.
+          </p>
+        </div>
+        <span className="user-dashboard__account-pill">Merchant #{profile.id}</span>
       </header>
 
       <section
@@ -228,7 +199,7 @@ export function MerchantDashboardPage(): ReactElement {
           <p className="user-dashboard__empty">Summary unavailable.</p>
         ) : (
           <>
-            <article className="user-dashboard__card">
+            <article className="user-dashboard__card user-dashboard__card--featured">
               <p className="user-dashboard__card-label">Total Transactions</p>
               <p className="user-dashboard__card-value">
                 {metrics.totalTransactions}
@@ -237,19 +208,19 @@ export function MerchantDashboardPage(): ReactElement {
             <article className="user-dashboard__card">
               <p className="user-dashboard__card-label">Total Purchase Amount</p>
               <p className="user-dashboard__card-value">
-                {formatMoneyDisplay(metrics.totalPurchaseAmount)}
+                <CurrencyAmount value={metrics.totalPurchaseAmount} />
               </p>
             </article>
             <article className="user-dashboard__card">
               <p className="user-dashboard__card-label">Total Payback Amount</p>
               <p className="user-dashboard__card-value">
-                {formatMoneyDisplay(metrics.totalPaybackAmount)}
+                <CurrencyAmount value={metrics.totalPaybackAmount} />
               </p>
             </article>
             <article className="user-dashboard__card">
               <p className="user-dashboard__card-label">Total Commission</p>
               <p className="user-dashboard__card-value">
-                {formatMoneyDisplay(metrics.totalCommission)}
+                <CurrencyAmount value={metrics.totalCommission} />
               </p>
             </article>
           </>
@@ -263,9 +234,15 @@ export function MerchantDashboardPage(): ReactElement {
             Transactions could not be loaded. Use Retry above to try again.
           </p>
         ) : !hasTransactions ? (
-          <p className="user-dashboard__empty">
-            No transactions yet. Customer purchases at your store will appear here.
-          </p>
+          <div className="user-dashboard__empty-state" role="status">
+            <span className="user-dashboard__empty-icon" aria-hidden="true">
+              ∅
+            </span>
+            <p className="user-dashboard__empty-title">No transactions yet</p>
+            <p className="user-dashboard__empty">
+              Customer purchases at your store will appear here.
+            </p>
+          </div>
         ) : (
           <>
             <div className="user-dashboard__table-wrap admin-users__table-desktop">
@@ -296,8 +273,12 @@ export function MerchantDashboardPage(): ReactElement {
                         {tx.transaction_type}
                       </span>
                     </td>
-                    <td>{formatMoneyDisplay(tx.amount)}</td>
-                    <td>{formatMoneyDisplay(tx.commission)}</td>
+                    <td className="user-dashboard__amount-cell">
+                      <CurrencyAmount value={tx.amount} />
+                    </td>
+                    <td>
+                      <CurrencyAmount value={tx.commission} />
+                    </td>
                     <td>{tx.commission_percentage}</td>
                   </tr>
                 ))}
@@ -326,11 +307,15 @@ export function MerchantDashboardPage(): ReactElement {
                     </div>
                     <div className="admin-users__card-row">
                       <span className="admin-users__card-label">Amount</span>
-                      <span className="admin-users__card-value">{formatMoneyDisplay(tx.amount)}</span>
+                      <span className="admin-users__card-value">
+                        <CurrencyAmount value={tx.amount} />
+                      </span>
                     </div>
                     <div className="admin-users__card-row">
                       <span className="admin-users__card-label">Commission</span>
-                      <span className="admin-users__card-value">{formatMoneyDisplay(tx.commission)}</span>
+                      <span className="admin-users__card-value">
+                        <CurrencyAmount value={tx.commission} />
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -340,20 +325,16 @@ export function MerchantDashboardPage(): ReactElement {
         )}
       </section>
 
-      <section className="user-dashboard__section" aria-label="Quick actions">
+      <section aria-label="Quick actions">
         <h2 className="user-dashboard__section-title">Quick actions</h2>
-        <div className="user-dashboard__actions merchant-dashboard__actions">
-          <Link
-            className="user-dashboard__action user-dashboard__action--enabled"
-            to="/merchant/transactions"
-          >
-            View Transactions
+        <div className="user-dashboard__quick-actions">
+          <Link className="user-dashboard__quick-action user-dashboard__quick-action--primary" to="/merchant/transactions">
+            <span className="user-dashboard__quick-action-label">View transactions</span>
+            <span className="user-dashboard__quick-action-hint">Full purchase ledger</span>
           </Link>
-          <Link
-            className="user-dashboard__action user-dashboard__action--enabled"
-            to="/merchant/profile"
-          >
-            Profile
+          <Link className="user-dashboard__quick-action" to="/merchant/profile">
+            <span className="user-dashboard__quick-action-label">Edit profile</span>
+            <span className="user-dashboard__quick-action-hint">Update business details</span>
           </Link>
         </div>
       </section>

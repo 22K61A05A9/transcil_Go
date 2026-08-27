@@ -55,5 +55,3 @@ export function removeToken(): void {
 export function clearSession(): void {
   removeToken()
 }
-
-export const authTokenStorageKey = TOKEN_STORAGE_KEY

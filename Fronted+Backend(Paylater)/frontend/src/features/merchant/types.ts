@@ -1,3 +1,5 @@
+import type { SqlNullInt32 } from '@/shared/api/dtos'
+
 /**
  * Backend DTOs for the Merchant area.
  * Shapes match Gateway JSON from Merchant and Transaction services.
@@ -9,12 +11,6 @@
  *
  * Login/register live in features/auth. Admin merchant CRUD is not included here.
  */
-
-/** Go sql.NullInt32 JSON encoding used by Transaction service. */
-export type SqlNullInt32 = {
-  Int32: number
-  Valid: boolean
-}
 
 /** GET /merchants/:id — password is never returned. */
 export type MerchantProfile = {

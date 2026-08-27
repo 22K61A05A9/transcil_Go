@@ -1,4 +1,4 @@
-import { addMoney } from '@/features/user/lib/money'
+import { addMoney } from '@/shared/lib/money'
 import type { MerchantTransaction } from '@/features/merchant/types'
 
 export type MerchantDashboardMetrics = {

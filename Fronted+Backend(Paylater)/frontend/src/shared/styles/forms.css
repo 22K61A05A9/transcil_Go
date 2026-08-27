@@ -1,0 +1,51 @@
+/* Shared form field patterns used across profile and admin screens */
+
+.admin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.admin-form-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.admin-form-input {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.admin-form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Details list in modal */
+.admin-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.admin-details-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-bottom: var(--border-width) solid var(--color-surface-muted);
+}
+
+.admin-details-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--weight-medium);
+}
+
+.admin-details-value {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
+}

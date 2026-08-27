@@ -5,14 +5,15 @@
 
 :root {
   /* Brand & semantic color */
-  --color-primary: #0f5c4c;
-  --color-primary-hover: #0c4a3d;
-  --color-primary-subtle: #e6f3ef;
-  --color-secondary: #1f2a37;
-  --color-secondary-muted: #4b5563;
+  --color-primary: #0b5e4f;
+  --color-primary-hover: #094a3f;
+  --color-primary-subtle: #e7f3f0;
+  --color-primary-muted: #5b9a8d;
+  --color-secondary: #1a2332;
+  --color-secondary-muted: #4a5568;
 
-  --color-success: #157a3f;
-  --color-success-subtle: #e8f6ee;
+  --color-success: #137a47;
+  --color-success-subtle: #e9f6ef;
   --color-danger: #b42318;
   --color-danger-subtle: #fef3f2;
   --color-warning: #b54708;
@@ -21,22 +22,24 @@
   --color-info-subtle: #eff8ff;
 
   /* Surfaces */
-  --color-bg: #f5f7f9;
+  --color-bg: #f2f4f7;
+  --color-bg-subtle: #e9edf2;
   --color-bg-elevated: #ffffff;
   --color-surface: #ffffff;
-  --color-surface-muted: #eef2f6;
-  --color-border: #d0d5dd;
-  --color-border-strong: #98a2b3;
+  --color-surface-muted: #f5f7fa;
+  --color-surface-elevated: #ffffff;
+  --color-border: #dce2ea;
+  --color-border-strong: #94a3b8;
 
   /* Text */
-  --color-text: #101828;
-  --color-text-secondary: #475467;
-  --color-text-muted: #667085;
+  --color-text: #0f172a;
+  --color-text-secondary: #3d4f66;
+  --color-text-muted: #64748b;
   --color-text-inverse: #ffffff;
-  --color-focus-ring: #0f5c4c;
+  --color-focus-ring: #0b5e4f;
 
   /* Typography */
-  --font-sans: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  --font-sans: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   --text-xs: 0.75rem;
@@ -57,6 +60,10 @@
   --weight-semibold: 600;
   --weight-bold: 700;
 
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+
   /* Spacing scale (4px base) */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -74,12 +81,15 @@
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
+  --radius-full: 9999px;
 
   /* Borders & shadows */
   --border-width: 1px;
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
-  --shadow-lg: 0 12px 28px rgba(16, 24, 40, 0.1);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 8px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.1), 0 4px 8px -4px rgba(15, 23, 42, 0.04);
+  --shadow-header: 0 1px 0 rgba(15, 23, 42, 0.06);
 
   /* Motion (restrained) */
   --transition-fast: 120ms ease;
@@ -87,7 +97,17 @@
 
   /* Layout */
   --container-max: 72rem;
-  --sidebar-width: 16rem;
+  --content-max: 80rem;
+  --header-height: 4rem;
+  --sidebar-width: 15.5rem;
+
+  /* Controls & surfaces (shell + shared UI) */
+  --control-height: 2.375rem;
+  --control-radius: var(--radius-md);
+  --card-radius: var(--radius-lg);
+  --card-border: var(--border-width) solid var(--color-border);
+  --card-shadow: var(--shadow-sm);
+  --card-padding: var(--space-5);
 
   /* Breakpoints (reference for media queries) */
   /* sm: 640px | md: 768px | lg: 1024px | xl: 1280px */

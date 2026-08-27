@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: user
+  namespace: paylater
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: user
+
+  template:
+    metadata:
+      labels:
+        app: user
+
+    spec:
+      containers:
+        - name: user
+
+          image: frontedbackendpaylater-user
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 9091
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: DB_HOST
+              value: mysql
+
+            - name: DB_PORT
+              value: "3306"
+
+            - name: DB_NAME
+              value: paylater
+
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: DB_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: DB_PASSWORD
+
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: JWT_SECRET
+
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: INTERNAL_SERVICE_TOKEN
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9091
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9091
+            initialDelaySeconds: 30
+            periodSeconds: 10

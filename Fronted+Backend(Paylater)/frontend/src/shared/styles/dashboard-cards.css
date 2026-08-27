@@ -1,0 +1,18 @@
+/* Shared summary card accents used across role dashboards */
+
+.user-dashboard__card--featured {
+  border-color: color-mix(in srgb, var(--color-primary) 28%, white);
+  background: linear-gradient(
+    165deg,
+    var(--color-primary-subtle) 0%,
+    var(--color-surface) 72%
+  );
+}
+
+.user-dashboard__card--due {
+  border-color: color-mix(in srgb, var(--color-warning) 35%, white);
+}
+
+.user-dashboard__card--due .user-dashboard__card-value {
+  color: var(--color-warning);
+}

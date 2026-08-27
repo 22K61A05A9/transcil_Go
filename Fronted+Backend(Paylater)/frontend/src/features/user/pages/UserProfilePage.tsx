@@ -6,33 +6,23 @@ import {
   type FormEvent,
   type ReactElement,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { getUserById, updateUserName } from '@/features/user/api/userApi'
 import type { UserProfile } from '@/features/user/types'
-import { formatMoneyDisplay } from '@/features/user/lib/money'
 import { isApiError } from '@/shared/api/errors'
+import { mapApiErrorMessage } from '@/shared/lib/apiErrorMessage'
 import { useAuth } from '@/shared/auth/useAuth'
 import { showToast } from '@/shared/ui/toastState'
-import '@/features/user/styles/user-dashboard.css'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import { PageSkeleton } from '@/shared/ui/PageSkeleton'
+import { CurrencyAmount } from '@/shared/ui/CurrencyAmount'
+import '@/shared/styles/page-shell.css'
 import '@/shared/styles/profile-page.css'
 
-function getErrorMessage(error: unknown): string {
-  if (isApiError(error)) {
-    if (error.status === 0) {
-      return 'Unable to reach the server. Check your connection and try again.'
-    }
-    if (error.status >= 500) {
-      return 'Something went wrong on our side. Please try again.'
-    }
-    return error.message || 'Unable to load your profile.'
-  }
-  return 'Unable to load your profile.'
-}
-
 export function UserProfilePage(): ReactElement {
-  const navigate = useNavigate()
-  const { userId, logout } = useAuth()
+  const { userId } = useAuth()
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -60,8 +50,6 @@ export function UserProfilePage(): ReactElement {
       setEditName(data.user_name)
     } catch (error) {
       if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
         return
       }
       setProfile(null)
@@ -71,12 +59,12 @@ export function UserProfilePage(): ReactElement {
           error.message || 'You do not have access to this profile.',
         )
       } else {
-        setErrorMessage(getErrorMessage(error))
+        setErrorMessage(mapApiErrorMessage(error, 'Unable to load your profile.'))
       }
     } finally {
       setIsLoading(false)
     }
-  }, [userId, logout, navigate])
+  }, [userId])
 
   useEffect(() => {
     void loadProfile()
@@ -129,8 +117,6 @@ export function UserProfilePage(): ReactElement {
       showToast('Profile updated successfully', 'success')
     } catch (error) {
       if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
         return
       }
       const msg = isApiError(error)
@@ -143,28 +129,19 @@ export function UserProfilePage(): ReactElement {
   }
 
   if (userId === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">Sign in required.</p>
-      </div>
-    )
+    return <PageLoadingState message="Sign in required." />
   }
 
   if (isLoading && profile === null && errorMessage === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading your profile…</p>
-      </div>
-    )
+    return <PageSkeleton label="Loading your profile" variant="profile" />
   }
 
   if (errorMessage !== null && profile === null) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">
-          {isForbidden ? 'Access denied' : 'Unable to load profile'}
-        </h1>
-        <p className="user-dashboard__error-message">{errorMessage}</p>
+      <PageLoadError
+        title={isForbidden ? 'Access denied' : 'Unable to load profile'}
+        message={errorMessage}
+      >
         {isForbidden ? (
           <Link
             className="user-dashboard__action user-dashboard__action--enabled"
@@ -183,20 +160,16 @@ export function UserProfilePage(): ReactElement {
             Retry
           </button>
         )}
-      </div>
+      </PageLoadError>
     )
   }
 
   if (profile === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">No profile data available.</p>
-      </div>
-    )
+    return <PageLoadingState message="No profile data available." />
   }
 
   return (
-    <div className="profile-page">
+    <div className="profile-page pl-page">
       <header className="user-dashboard__welcome">
         <p className="user-dashboard__eyebrow">Customer account</p>
         <h1 className="user-dashboard__title">Profile</h1>
@@ -283,11 +256,15 @@ export function UserProfilePage(): ReactElement {
               </div>
               <div className="profile-page__field">
                 <dt>Credit limit</dt>
-                <dd>{formatMoneyDisplay(profile.credit_limit)}</dd>
+                <dd>
+                  <CurrencyAmount value={profile.credit_limit} />
+                </dd>
               </div>
               <div className="profile-page__field">
                 <dt>Current due</dt>
-                <dd>{formatMoneyDisplay(profile.current_due)}</dd>
+                <dd>
+                  <CurrencyAmount value={profile.current_due} />
+                </dd>
               </div>
             </dl>
           </>

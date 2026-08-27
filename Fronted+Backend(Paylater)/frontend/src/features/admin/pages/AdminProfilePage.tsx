@@ -4,33 +4,22 @@ import {
   useState,
   type ReactElement,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { getAdminById } from '@/features/admin/api/adminApi'
 import type { AdminProfile } from '@/features/admin/types'
 import { isApiError } from '@/shared/api/errors'
+import { mapApiErrorMessage } from '@/shared/lib/apiErrorMessage'
 import { useAuth } from '@/shared/auth/useAuth'
-import { getRoleDisplayLabel } from '@/shared/ui/layout/navConfig'
-import '@/features/user/styles/user-dashboard.css'
+import { getRoleDisplayLabel } from '@/shared/auth/roles'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import '@/shared/styles/page-shell.css'
 import '@/features/admin/styles/admin-dashboard.css'
 import '@/shared/styles/profile-page.css'
 
-function getErrorMessage(error: unknown): string {
-  if (isApiError(error)) {
-    if (error.status === 0) {
-      return 'Unable to reach the server. Check your connection and try again.'
-    }
-    if (error.status >= 500) {
-      return 'Something went wrong on our side. Please try again.'
-    }
-    return error.message || 'Unable to load your profile.'
-  }
-  return 'Unable to load your profile.'
-}
-
 export function AdminProfilePage(): ReactElement {
-  const navigate = useNavigate()
-  const { role, userId, logout } = useAuth()
+  const { role, userId } = useAuth()
   const isSuperAdmin = role === 'SUPER_ADMIN'
 
   const [profile, setProfile] = useState<AdminProfile | null>(null)
@@ -53,8 +42,6 @@ export function AdminProfilePage(): ReactElement {
       setProfile(data)
     } catch (error) {
       if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
         return
       }
       setProfile(null)
@@ -64,40 +51,31 @@ export function AdminProfilePage(): ReactElement {
           error.message || 'You do not have access to this admin profile.',
         )
       } else {
-        setErrorMessage(getErrorMessage(error))
+        setErrorMessage(mapApiErrorMessage(error, 'Unable to load your profile.'))
       }
     } finally {
       setIsLoading(false)
     }
-  }, [userId, logout, navigate])
+  }, [userId])
 
   useEffect(() => {
     void loadProfile()
   }, [loadProfile, reloadKey])
 
   if (userId === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">Sign in required.</p>
-      </div>
-    )
+    return <PageLoadingState message="Sign in required." />
   }
 
   if (isLoading && profile === null && errorMessage === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading your profile…</p>
-      </div>
-    )
+    return <PageLoadingState message="Loading your profile…" live />
   }
 
   if (errorMessage !== null && profile === null) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">
-          {isForbidden ? 'Access denied' : 'Unable to load profile'}
-        </h1>
-        <p className="user-dashboard__error-message">{errorMessage}</p>
+      <PageLoadError
+        title={isForbidden ? 'Access denied' : 'Unable to load profile'}
+        message={errorMessage}
+      >
         {isForbidden ? (
           <Link
             className="user-dashboard__action user-dashboard__action--enabled"
@@ -116,22 +94,18 @@ export function AdminProfilePage(): ReactElement {
             Retry
           </button>
         )}
-      </div>
+      </PageLoadError>
     )
   }
 
   if (profile === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">No profile data available.</p>
-      </div>
-    )
+    return <PageLoadingState message="No profile data available." />
   }
 
   const roleLabel = getRoleDisplayLabel(profile.role)
 
   return (
-    <div className="profile-page admin-dashboard">
+    <div className="profile-page admin-dashboard pl-page">
       <header className="user-dashboard__welcome">
         <p className="user-dashboard__eyebrow admin-dashboard__eyebrow">
           Administration

@@ -1,4 +1,6 @@
 import { apiPost } from '@/shared/api/client'
+import { assertMessageResponse } from '@/shared/api/response'
+import { GUEST_API_ENDPOINTS } from '@/shared/config/guestAccess'
 import type {
   LoginRequest,
   LoginResponse,
@@ -18,21 +20,16 @@ function assertLoginResponse(data: LoginResponse): LoginResponse {
   return data
 }
 
-function assertMessageResponse(data: { message: string }, label: string): { message: string } {
-  if (typeof data.message !== 'string' || data.message.trim() === '') {
-    throw new Error(`Unexpected ${label} response shape`)
-  }
-  return data
-}
-
 /**
  * POST /user/login — public.
  * Does not persist the token; the caller decides when to store it.
  */
 export async function loginUser(credentials: LoginRequest): Promise<LoginResponse> {
-  const response = await apiPost<LoginResponse>('/user/login', credentials, {
-    token: null,
-  })
+  const response = await apiPost<LoginResponse>(
+    GUEST_API_ENDPOINTS.userLogin,
+    credentials,
+    { token: null },
+  )
   return assertLoginResponse(response)
 }
 
@@ -42,9 +39,11 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
 export async function loginMerchant(
   credentials: LoginRequest,
 ): Promise<LoginResponse> {
-  const response = await apiPost<LoginResponse>('/merchant/login', credentials, {
-    token: null,
-  })
+  const response = await apiPost<LoginResponse>(
+    GUEST_API_ENDPOINTS.merchantLogin,
+    credentials,
+    { token: null },
+  )
   return assertLoginResponse(response)
 }
 
@@ -52,9 +51,11 @@ export async function loginMerchant(
  * POST /admin/login — public.
  */
 export async function loginAdmin(credentials: LoginRequest): Promise<LoginResponse> {
-  const response = await apiPost<LoginResponse>('/admin/login', credentials, {
-    token: null,
-  })
+  const response = await apiPost<LoginResponse>(
+    GUEST_API_ENDPOINTS.adminLogin,
+    credentials,
+    { token: null },
+  )
   return assertLoginResponse(response)
 }
 
@@ -65,9 +66,11 @@ export async function loginAdmin(credentials: LoginRequest): Promise<LoginRespon
 export async function registerUser(
   payload: RegisterUserRequest,
 ): Promise<RegisterUserResponse> {
-  const response = await apiPost<RegisterUserResponse>('/users', payload, {
-    token: null,
-  })
+  const response = await apiPost<RegisterUserResponse>(
+    GUEST_API_ENDPOINTS.userRegister,
+    payload,
+    { token: null },
+  )
   return assertMessageResponse(response, 'registration')
 }
 
@@ -80,7 +83,7 @@ export async function registerMerchant(
   payload: RegisterMerchantRequest,
 ): Promise<RegisterMerchantResponse> {
   const response = await apiPost<RegisterMerchantResponse>(
-    '/merchants/register',
+    GUEST_API_ENDPOINTS.merchantRegister,
     payload,
     { token: null },
   )

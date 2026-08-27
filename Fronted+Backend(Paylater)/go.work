@@ -1,11 +1,11 @@
 go 1.26.5
 
 use (
-	./services/admin
-	./services/gateway
-	./services/merchant
-	./services/report
-	./services/transaction
-	./services/user
-	./shared
+        ./backend/services/admin
+        ./backend/services/gateway
+        ./backend/services/merchant
+        ./backend/services/report
+        ./backend/services/transaction
+        ./backend/services/user
+        ./backend/shared
 )

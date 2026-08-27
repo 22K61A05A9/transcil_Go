@@ -1,7 +1,11 @@
-import { env } from '@/shared/config/env'
+import axios from 'axios'
+
 import { getToken } from '@/shared/auth/tokenStorage'
 import { ApiError, messageFromErrorBody } from '@/shared/api/errors'
+import { axiosInstance } from '@/shared/api/axiosInstance'
+import { notifyUnauthorizedSession } from '@/shared/api/unauthorizedSession'
 import { joinApiUrl } from '@/shared/api/url'
+import { env } from '@/shared/config/env'
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
@@ -21,25 +25,35 @@ function buildUrl(path: string): string {
   return joinApiUrl(env.apiBaseUrl, path)
 }
 
-function buildHeaders(options: ApiRequestOptions): Headers {
-  const headers = new Headers(options.headers)
+function resolveRequestToken(options: ApiRequestOptions): string | null {
+  if (options.token === undefined) {
+    return getToken()
+  }
+  return options.token
+}
 
-  if (options.body !== undefined && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json')
+function buildHeaders(
+  options: ApiRequestOptions,
+  requestToken: string | null,
+): Record<string, string> {
+  const headers: Record<string, string> = { ...options.headers }
+
+  if (options.body !== undefined && headers['Content-Type'] === undefined) {
+    headers['Content-Type'] = 'application/json'
   }
 
-  const token = options.token === undefined ? getToken() : options.token
-
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`)
+  if (requestToken) {
+    headers.Authorization = `Bearer ${requestToken}`
   }
 
   return headers
 }
 
-async function parseResponseBody(response: Response): Promise<unknown> {
-  const text = await response.text()
+function normalizePath(path: string): string {
+  return path.startsWith('/') ? path : `/${path}`
+}
 
+function parseResponseBody(status: number, text: string): unknown {
   if (text.trim() === '') {
     return undefined
   }
@@ -48,8 +62,8 @@ async function parseResponseBody(response: Response): Promise<unknown> {
     return JSON.parse(text) as unknown
   } catch {
     throw new ApiError(
-      response.ok ? 'Received an invalid JSON response' : text || 'Request failed',
-      response.status,
+      status >= 200 && status < 300 ? 'Received an invalid JSON response' : text || 'Request failed',
+      status,
     )
   }
 }
@@ -63,31 +77,35 @@ export async function apiRequest<T>(
   options: ApiRequestOptions = {},
 ): Promise<T> {
   const method = options.method ?? 'GET'
-  const headers = buildHeaders(options)
+  const requestToken = resolveRequestToken(options)
+  const sentAuthorization = requestToken !== null && requestToken.trim() !== ''
+  const headers = buildHeaders(options, requestToken)
 
-  const init: RequestInit = {
-    method,
-    headers,
-  }
-
-  if (options.body !== undefined) {
-    init.body = JSON.stringify(options.body)
-  }
-
-  if (options.signal) {
-    init.signal = options.signal
-  }
-
-  let response: Response
+  let response
   try {
-    response = await fetch(buildUrl(path), init)
-  } catch {
+    response = await axiosInstance.request<string>({
+      url: normalizePath(path),
+      method,
+      headers,
+      ...(options.body !== undefined ? { data: options.body } : {}),
+      ...(options.signal ? { signal: options.signal } : {}),
+      responseType: 'text',
+    })
+  } catch (error) {
+    if (axios.isCancel(error)) {
+      throw error
+    }
+
     throw new ApiError('Unable to reach the server', 0)
   }
 
-  const data = await parseResponseBody(response)
+  const data = parseResponseBody(response.status, response.data ?? '')
 
-  if (!response.ok) {
+  if (response.status < 200 || response.status >= 300) {
+    if (response.status === 401 && sentAuthorization) {
+      notifyUnauthorizedSession()
+    }
+
     throw new ApiError(
       messageFromErrorBody(data, 'Request failed'),
       response.status,

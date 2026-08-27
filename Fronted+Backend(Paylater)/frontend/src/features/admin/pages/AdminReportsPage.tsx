@@ -7,7 +7,6 @@ import {
   type FormEvent,
   type ReactElement,
 } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 import {
   getTotalDue,
@@ -17,10 +16,16 @@ import {
   getAdminUserDue,
 } from '@/features/admin/api/adminApi'
 import type { ReportUserRow } from '@/features/admin/types'
-import { formatMoneyDisplay } from '@/features/user/lib/money'
+import {
+  ReportUserCards,
+  ReportUserTable,
+} from '@/features/admin/components/ReportUserViews'
+import { formatMoneyDisplay } from '@/shared/lib/money'
 import { isApiError } from '@/shared/api/errors'
-import { useAuth } from '@/shared/auth/useAuth'
-import '@/features/user/styles/user-dashboard.css'
+import { createAdminApiErrorHandler } from '@/features/admin/lib/adminApiError'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import '@/shared/styles/page-shell.css'
 import '@/features/admin/styles/admin-dashboard.css'
 import '@/shared/styles/profile-page.css'
 
@@ -55,82 +60,7 @@ function filterReportRows(rows: ReportUserRow[], query: string): ReportUserRow[]
   )
 }
 
-function ReportUserTable({
-  rows,
-  emptyMessage,
-}: {
-  rows: ReportUserRow[]
-  emptyMessage: string
-}): ReactElement {
-  if (rows.length === 0) {
-    return <p className="user-dashboard__empty">{emptyMessage}</p>
-  }
-
-  return (
-    <div className="user-dashboard__table-wrap admin-users__table-desktop">
-      <table className="user-dashboard__table admin-reports__table">
-        <thead>
-          <tr>
-            <th scope="col">User ID</th>
-            <th scope="col">User name</th>
-            <th scope="col">Credit limit</th>
-            <th scope="col">Current due</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.id}>
-              <td>{row.id}</td>
-              <td className="admin-reports__name-cell">{row.user_name}</td>
-              <td>{formatMoneyDisplay(row.credit_limit)}</td>
-              <td className="admin-reports__due-cell">{formatMoneyDisplay(row.current_due)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-function ReportUserCards({
-  rows,
-  emptyMessage,
-}: {
-  rows: ReportUserRow[]
-  emptyMessage: string
-}): ReactElement {
-  if (rows.length === 0) {
-    return <p className="user-dashboard__empty">{emptyMessage}</p>
-  }
-
-  return (
-    <div className="admin-users__mobile-cards">
-      {rows.map((row) => (
-        <div key={row.id} className="admin-users__card">
-          <div className="admin-users__card-header">
-            <span className="admin-users__card-title">{row.user_name}</span>
-            <span className="admin-users__card-id">ID: {row.id}</span>
-          </div>
-          <div className="admin-users__card-body">
-            <div className="admin-users__card-row">
-              <span className="admin-users__card-label">Credit limit</span>
-              <span className="admin-users__card-value">{formatMoneyDisplay(row.credit_limit)}</span>
-            </div>
-            <div className="admin-users__card-row">
-              <span className="admin-users__card-label">Current due</span>
-              <span className="admin-users__card-value">{formatMoneyDisplay(row.current_due)}</span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 export function AdminReportsPage(): ReactElement {
-  const navigate = useNavigate()
-  const { logout } = useAuth()
-
   const [data, setData] = useState<ReportsData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [fatalError, setFatalError] = useState<string | null>(null)
@@ -150,24 +80,7 @@ export function AdminReportsPage(): ReactElement {
   const [isUserDueLoading, setIsUserDueLoading] = useState(false)
   const [userDueError, setUserDueError] = useState<string | null>(null)
 
-  const handleApiError = useCallback((error: unknown, fallback: string): string => {
-    if (isApiError(error)) {
-      if (error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
-        return 'Session expired. Logging out...'
-      }
-      if (error.status === 403) {
-        setIsForbidden(true)
-        return 'Access denied. You do not have permissions for this resource.'
-      }
-      if (error.status === 0) {
-        return 'Unable to reach the server. Check your connection.'
-      }
-      return error.message || fallback
-    }
-    return fallback
-  }, [logout, navigate])
+  const handleApiError = useCallback(createAdminApiErrorHandler(setIsForbidden), [])
 
   const loadReports = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -180,17 +93,12 @@ export function AdminReportsPage(): ReactElement {
       getUsersAtCreditLimit(),
     ])
 
-    const handleUnauthorized = (error: unknown): boolean => {
-      if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
-        return true
-      }
-      return false
-    }
-
     for (const result of results) {
-      if (result.status === 'rejected' && handleUnauthorized(result.reason)) {
+      if (
+        result.status === 'rejected' &&
+        isApiError(result.reason) &&
+        result.reason.status === 401
+      ) {
         return
       }
     }
@@ -235,7 +143,7 @@ export function AdminReportsPage(): ReactElement {
       sectionErrors,
     })
     setIsLoading(false)
-  }, [logout, navigate, handleApiError])
+  }, [handleApiError])
 
   useEffect(() => {
     void loadReports()
@@ -304,35 +212,22 @@ export function AdminReportsPage(): ReactElement {
       : sectionErrors.usersAtCreditLimit
 
   if (isLoading && data === null && fatalError === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading platform reports…</p>
-      </div>
-    )
+    return <PageLoadingState message="Loading platform reports…" live />
   }
 
   if (fatalError !== null && data === null) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">
-          {isForbidden ? 'Access denied' : 'Unable to load reports'}
-        </h1>
-        <p className="user-dashboard__error-message">{fatalError}</p>
-        {!isForbidden ? (
-          <button
-            type="button"
-            className="user-dashboard__retry"
-            onClick={() => setReloadKey((key) => key + 1)}
-          >
-            Retry
-          </button>
-        ) : null}
-      </div>
+      <PageLoadError
+        title={isForbidden ? 'Access denied' : 'Unable to load reports'}
+        message={fatalError}
+        onRetry={() => setReloadKey((key) => key + 1)}
+        showRetry={!isForbidden}
+      />
     )
   }
 
   return (
-    <div className="admin-dashboard user-dashboard admin-reports">
+    <div className="admin-dashboard user-dashboard admin-reports pl-page">
       <header className="user-dashboard__welcome">
         <p className="user-dashboard__eyebrow admin-dashboard__eyebrow">
           Administration
@@ -526,6 +421,7 @@ export function AdminReportsPage(): ReactElement {
               Showing {filteredRows.length} of {activeRows.length} records
             </p>
             <ReportUserTable
+              variant="reports"
               rows={filteredRows}
               emptyMessage={
                 tableSearch.trim() !== ''
@@ -536,6 +432,7 @@ export function AdminReportsPage(): ReactElement {
               }
             />
             <ReportUserCards
+              variant="reports"
               rows={filteredRows}
               emptyMessage={
                 tableSearch.trim() !== ''

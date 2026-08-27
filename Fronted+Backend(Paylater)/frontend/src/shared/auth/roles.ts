@@ -23,3 +23,16 @@ export function isAdmin(role: AuthRole): boolean {
 export function isSuperAdmin(role: AuthRole): boolean {
   return role === 'SUPER_ADMIN'
 }
+
+export function getRoleDisplayLabel(role: AuthRole): string {
+  switch (role) {
+    case 'user':
+      return 'User'
+    case 'merchant':
+      return 'Merchant'
+    case 'ADMIN':
+      return 'Admin'
+    case 'SUPER_ADMIN':
+      return 'Super Admin'
+  }
+}

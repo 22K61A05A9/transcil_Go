@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: admin
+  namespace: paylater
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: admin
+
+  template:
+    metadata:
+      labels:
+        app: admin
+
+    spec:
+      containers:
+        - name: admin
+          image: frontedbackendpaylater-admin
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 9093
+
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            # Non-sensitive database configuration
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: paylater-config
+                  key: DB_HOST
+
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: paylater-config
+                  key: DB_PORT
+
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: paylater-config
+                  key: DB_NAME
+
+            # Sensitive configuration from Kubernetes Secret
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: admin-secret
+                  key: DB_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: admin-secret
+                  key: DB_PASSWORD
+
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: admin-secret
+                  key: JWT_SECRET
+
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: admin-secret
+                  key: INTERNAL_SERVICE_TOKEN
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9093
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9093
+            initialDelaySeconds: 30
+            periodSeconds: 10

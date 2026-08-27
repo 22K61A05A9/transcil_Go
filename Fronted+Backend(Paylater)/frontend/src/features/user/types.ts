@@ -1,14 +1,10 @@
+import type { SqlNullInt32 } from '@/shared/api/dtos'
+
 /**
  * Backend DTOs for the User area.
  * Shapes match Gateway JSON from User and Transaction services.
  * Monetary fields stay strings — do not coerce to number in the API layer.
  */
-
-/** Go sql.NullInt32 JSON encoding used by Transaction service. */
-export type SqlNullInt32 = {
-  Int32: number
-  Valid: boolean
-}
 
 /** GET /users/:id — email and password are never returned. */
 export type UserProfile = {
@@ -53,7 +49,3 @@ export type CreatePaybackRequest = {
   amount: string
 }
 
-/** Shared success envelope for create/update message responses. */
-export type MessageResponse = {
-  message: string
-}

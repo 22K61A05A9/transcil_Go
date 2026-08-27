@@ -15,6 +15,7 @@ import { Window } from 'happy-dom'
 
 import { ProtectedRoute } from '../src/app/routing/ProtectedRoute'
 import { PublicOnlyRoute } from '../src/app/routing/PublicOnlyRoute'
+import { GUEST_ROUTE_PATHS } from '../src/shared/config/guestAccess'
 import { AuthProvider } from '../src/shared/auth/AuthProvider'
 import { clearSession, setToken } from '../src/shared/auth/tokenStorage'
 
@@ -76,10 +77,10 @@ function page(text: string) {
 const testRoutes: RouteObject[] = [
   {
     path: '/',
-    element: createElement(Navigate, { to: '/login', replace: true }),
+    element: createElement(Navigate, { to: GUEST_ROUTE_PATHS.login, replace: true }),
   },
   {
-    path: '/login',
+    path: GUEST_ROUTE_PATHS.login,
     element: createElement(PublicOnlyRoute),
     children: [{ index: true, element: page('Sign in') }],
   },
@@ -88,7 +89,7 @@ const testRoutes: RouteObject[] = [
     element: createElement(ProtectedRoute, { allowedRoles: ['user'] }),
     children: [
       { index: true, element: page('User area') },
-      { path: '*', element: page('User area') },
+      { path: '*', element: page('Page not found') },
     ],
   },
   {
@@ -96,7 +97,7 @@ const testRoutes: RouteObject[] = [
     element: createElement(ProtectedRoute, { allowedRoles: ['merchant'] }),
     children: [
       { index: true, element: page('Merchant area') },
-      { path: '*', element: page('Merchant area') },
+      { path: '*', element: page('Page not found') },
     ],
   },
   {
@@ -106,12 +107,12 @@ const testRoutes: RouteObject[] = [
     }),
     children: [
       { index: true, element: page('Admin area') },
-      { path: '*', element: page('Admin area') },
+      { path: '*', element: page('Page not found') },
     ],
   },
   {
     path: '*',
-    element: createElement(Navigate, { to: '/login', replace: true }),
+    element: page('Page not found'),
   },
 ]
 
@@ -147,8 +148,8 @@ async function main(): Promise<void> {
 
   {
     clearSession()
-    const result = await renderAt('/login')
-    assert(result.path === '/login', `case1 path=${result.path}`)
+    const result = await renderAt(GUEST_ROUTE_PATHS.login)
+    assert(result.path === GUEST_ROUTE_PATHS.login, `case1 path=${result.path}`)
     assert(result.text.includes('Sign in'), 'case1 login UI')
     console.log('OK case1 no token /login')
   }
@@ -156,7 +157,7 @@ async function main(): Promise<void> {
   for (const area of ['/user', '/merchant', '/admin'] as const) {
     clearSession()
     const result = await renderAt(area)
-    assert(result.path === '/login', `unauth ${area} → ${result.path}`)
+    assert(result.path === GUEST_ROUTE_PATHS.login, `unauth ${area} → ${result.path}`)
     console.log(`OK no token ${area} → /login`)
   }
 
@@ -223,7 +224,7 @@ async function main(): Promise<void> {
   {
     clearSession()
     setToken(makeUnsignedJwt({ id: 1, role: 'user', exp: validExp }))
-    const result = await renderAt('/login')
+    const result = await renderAt(GUEST_ROUTE_PATHS.login)
     assert(result.path === '/user', `case12 path=${result.path}`)
     console.log('OK case12 authenticated /login → /user')
   }
@@ -231,7 +232,7 @@ async function main(): Promise<void> {
   {
     clearSession()
     setToken(makeUnsignedJwt({ id: 3, role: 'ADMIN', exp: validExp }))
-    const result = await renderAt('/login')
+    const result = await renderAt(GUEST_ROUTE_PATHS.login)
     assert(result.path === '/admin', `admin login redirect=${result.path}`)
     console.log('OK authenticated ADMIN /login → /admin')
   }
@@ -239,7 +240,7 @@ async function main(): Promise<void> {
   {
     clearSession()
     setToken(makeUnsignedJwt({ id: 5, role: 'merchant', exp: validExp }))
-    const result = await renderAt('/login')
+    const result = await renderAt(GUEST_ROUTE_PATHS.login)
     assert(result.path === '/merchant', `merchant login redirect=${result.path}`)
     console.log('OK authenticated merchant /login → /merchant')
   }

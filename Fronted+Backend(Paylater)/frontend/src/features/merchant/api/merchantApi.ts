@@ -1,10 +1,11 @@
 import { apiGet, apiPut } from '@/shared/api/client'
+import type { MessageResponse } from '@/shared/api/dtos'
+import { assertMessageResponse } from '@/shared/api/response'
 import type {
   MerchantProfile,
   MerchantTransaction,
   UpdateMerchantProfileRequest,
 } from '@/features/merchant/types'
-import type { MessageResponse } from '@/features/user/types'
 
 function assertMerchantProfile(data: MerchantProfile): MerchantProfile {
   if (
@@ -61,13 +62,6 @@ export async function getMerchantTransactions(
     `/transactions/merchant/${merchantId}`,
   )
   return normalizeMerchantTransactionList(response)
-}
-
-function assertMessageResponse(data: MessageResponse, label: string): MessageResponse {
-  if (typeof data.message !== 'string' || data.message.trim() === '') {
-    throw new Error(`Unexpected ${label} response shape`)
-  }
-  return data
 }
 
 /**

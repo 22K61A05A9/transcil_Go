@@ -4,7 +4,7 @@ import {
   useState,
   type ReactElement,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { getUserById, getUserTransactions } from '@/features/user/api/userApi'
 import {
@@ -12,12 +12,16 @@ import {
   takeRecentTransactions,
   type UserDashboardMetrics,
 } from '@/features/user/lib/dashboardMetrics'
-import { formatMoneyDisplay } from '@/features/user/lib/money'
+import { moneyToCents } from '@/shared/lib/money'
 import type { UserProfile, UserTransaction } from '@/features/user/types'
 import { isApiError } from '@/shared/api/errors'
+import { mapApiErrorMessage } from '@/shared/lib/apiErrorMessage'
 import { useAuth } from '@/shared/auth/useAuth'
+import { CurrencyAmount } from '@/shared/ui/CurrencyAmount'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import '@/shared/styles/page-shell.css'
 import '@/features/user/styles/user-dashboard.css'
-import '@/features/admin/styles/admin-dashboard.css'
 
 const RECENT_LIMIT = 5
 
@@ -28,22 +32,110 @@ type DashboardData = {
   hasTransactions: boolean
 }
 
-function getErrorMessage(error: unknown): string {
-  if (isApiError(error)) {
-    if (error.status === 0) {
-      return 'Unable to reach the server. Check your connection and try again.'
-    }
-    if (error.status >= 500) {
-      return 'Something went wrong on our side. Please try again.'
-    }
-    return error.message || 'Unable to load your dashboard.'
+function hasOutstandingDue(currentDue: string): boolean {
+  try {
+    return moneyToCents(currentDue) > 0n
+  } catch {
+    return false
   }
-  return 'Unable to load your dashboard.'
+}
+
+function UserDashboardSkeleton(): ReactElement {
+  return (
+    <div
+      className="user-dashboard pl-page user-dashboard--loading"
+      aria-busy="true"
+      aria-live="polite"
+      aria-label="Loading your dashboard"
+    >
+      <div className="user-dashboard__skeleton user-dashboard__skeleton--hero" />
+      <div className="user-dashboard__skeleton-grid" aria-hidden="true">
+        <div className="user-dashboard__skeleton user-dashboard__skeleton--card" />
+        <div className="user-dashboard__skeleton user-dashboard__skeleton--card" />
+        <div className="user-dashboard__skeleton user-dashboard__skeleton--card" />
+      </div>
+      <div className="user-dashboard__skeleton-grid" aria-hidden="true">
+        <div className="user-dashboard__skeleton user-dashboard__skeleton--card" />
+        <div className="user-dashboard__skeleton user-dashboard__skeleton--card" />
+        <div className="user-dashboard__skeleton user-dashboard__skeleton--card" />
+        <div className="user-dashboard__skeleton user-dashboard__skeleton--card" />
+      </div>
+      <div className="user-dashboard__skeleton-layout" aria-hidden="true">
+        <div className="user-dashboard__skeleton user-dashboard__skeleton--section" />
+        <div className="user-dashboard__skeleton user-dashboard__skeleton--section" />
+      </div>
+    </div>
+  )
+}
+
+function RecentTransactionRow({ tx }: { tx: UserTransaction }): ReactElement {
+  return (
+    <tr>
+      <td>{tx.id}</td>
+      <td>
+        <span
+          className={
+            tx.transaction_type === 'PURCHASE'
+              ? 'user-dashboard__type user-dashboard__type--purchase'
+              : 'user-dashboard__type user-dashboard__type--payback'
+          }
+        >
+          {tx.transaction_type}
+        </span>
+      </td>
+      <td className="user-dashboard__amount-cell">
+        <CurrencyAmount value={tx.amount} />
+      </td>
+      <td>
+        <CurrencyAmount value={tx.commission} />
+      </td>
+      <td>{tx.commission_percentage}%</td>
+      <td>{tx.merchant_id.Valid ? tx.merchant_id.Int32 : '—'}</td>
+    </tr>
+  )
+}
+
+function RecentTransactionCard({ tx }: { tx: UserTransaction }): ReactElement {
+  return (
+    <article className="user-dashboard__tx-card">
+      <div className="user-dashboard__tx-card-header">
+        <span
+          className={
+            tx.transaction_type === 'PURCHASE'
+              ? 'user-dashboard__type user-dashboard__type--purchase'
+              : 'user-dashboard__type user-dashboard__type--payback'
+          }
+        >
+          {tx.transaction_type}
+        </span>
+        <span className="user-dashboard__tx-card-id">ID {tx.id}</span>
+      </div>
+      <div className="user-dashboard__tx-card-body">
+        <div className="user-dashboard__tx-card-row">
+          <span className="user-dashboard__tx-card-label">Amount</span>
+          <span className="user-dashboard__tx-card-value">
+            <CurrencyAmount value={tx.amount} />
+          </span>
+        </div>
+        <div className="user-dashboard__tx-card-row">
+          <span className="user-dashboard__tx-card-label">Commission</span>
+          <span className="user-dashboard__tx-card-value">
+            <CurrencyAmount value={tx.commission} />
+          </span>
+        </div>
+        <div className="user-dashboard__tx-card-row">
+          <span className="user-dashboard__tx-card-label">Merchant</span>
+          <span className="user-dashboard__tx-card-value">
+            {tx.merchant_id.Valid ? tx.merchant_id.Int32 : '—'}
+          </span>
+        </div>
+      </div>
+    </article>
+  )
 }
 
 export function UserDashboardPage(): ReactElement {
-  const navigate = useNavigate()
-  const { userId, logout } = useAuth()
+  const { userId } = useAuth()
 
   const [data, setData] = useState<DashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -73,235 +165,221 @@ export function UserDashboardPage(): ReactElement {
       })
     } catch (error) {
       if (isApiError(error) && error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
         return
       }
       setData(null)
-      setErrorMessage(getErrorMessage(error))
+      setErrorMessage(mapApiErrorMessage(error, 'Unable to load your dashboard.'))
     } finally {
       setIsLoading(false)
     }
-  }, [userId, logout, navigate])
+  }, [userId])
 
   useEffect(() => {
     void loadDashboard()
   }, [loadDashboard, reloadKey])
 
   if (userId === null) {
-    return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">Sign in required.</p>
-      </div>
-    )
+    return <PageLoadingState message="Sign in required." />
   }
 
   if (isLoading && data === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading your dashboard…</p>
-      </div>
-    )
+    return <UserDashboardSkeleton />
   }
 
   if (errorMessage !== null && data === null) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">Unable to load dashboard</h1>
-        <p className="user-dashboard__error-message">{errorMessage}</p>
-        <button
-          type="button"
-          className="user-dashboard__retry"
-          onClick={() => {
-            setReloadKey((key) => key + 1)
-          }}
-        >
-          Retry
-        </button>
+      <div className="user-dashboard pl-page">
+        <div className="user-dashboard__error-wrap">
+          <PageLoadError
+            title="Unable to load dashboard"
+            message={errorMessage}
+            onRetry={() => {
+              setReloadKey((key) => key + 1)
+            }}
+          />
+        </div>
       </div>
     )
   }
 
   if (data === null) {
     return (
-      <div className="user-dashboard__status" role="status">
-        <p className="user-dashboard__loading">No dashboard data available.</p>
+      <div className="user-dashboard pl-page">
+        <div className="user-dashboard__empty-state" role="status">
+          <span className="user-dashboard__empty-icon" aria-hidden="true">
+            —
+          </span>
+          <p className="user-dashboard__empty-title">No dashboard data available</p>
+          <p className="user-dashboard__empty">
+            We could not show your account overview right now.
+          </p>
+        </div>
       </div>
     )
   }
 
   const { profile, metrics, recent, hasTransactions } = data
+  const dueOutstanding = hasOutstandingDue(metrics.currentDue)
 
   return (
-    <div className="user-dashboard">
-      <header className="user-dashboard__welcome">
-        <p className="user-dashboard__eyebrow">Customer dashboard</p>
-        <h1 className="user-dashboard__title">Welcome, {profile.user_name}</h1>
-        <p className="user-dashboard__subtitle">
-          Account overview based on your PayLater profile and ledger.
-        </p>
+    <div className="user-dashboard pl-page">
+      <header className="user-dashboard__hero">
+        <div className="user-dashboard__hero-content">
+          <p className="user-dashboard__eyebrow">Customer dashboard</p>
+          <h1 className="user-dashboard__title">Welcome back, {profile.user_name}</h1>
+          <p className="user-dashboard__subtitle">
+            Your PayLater account at a glance — credit, balance, and recent activity.
+          </p>
+        </div>
+        <span className="user-dashboard__account-pill">Account #{profile.id}</span>
       </header>
 
-      <section aria-label="Account summary" className="user-dashboard__cards">
-        <article className="user-dashboard__card">
-          <p className="user-dashboard__card-label">Credit Limit</p>
+      <section aria-label="Account summary" className="user-dashboard__summary">
+        <article className="user-dashboard__card user-dashboard__card--featured">
+          <p className="user-dashboard__card-label">Available credit</p>
           <p className="user-dashboard__card-value">
-            {formatMoneyDisplay(metrics.creditLimit)}
+            <CurrencyAmount value={metrics.availableCredit} />
+          </p>
+          <p className="user-dashboard__card-hint">Ready to use for purchases</p>
+        </article>
+        <article
+          className={
+            dueOutstanding
+              ? 'user-dashboard__card user-dashboard__card--due'
+              : 'user-dashboard__card'
+          }
+        >
+          <p className="user-dashboard__card-label">Current due</p>
+          <p className="user-dashboard__card-value">
+            <CurrencyAmount value={metrics.currentDue} />
+          </p>
+          <p className="user-dashboard__card-hint">
+            {dueOutstanding ? 'Outstanding balance to repay' : 'No outstanding balance'}
           </p>
         </article>
         <article className="user-dashboard__card">
-          <p className="user-dashboard__card-label">Current Due</p>
+          <p className="user-dashboard__card-label">Credit limit</p>
           <p className="user-dashboard__card-value">
-            {formatMoneyDisplay(metrics.currentDue)}
+            <CurrencyAmount value={metrics.creditLimit} />
           </p>
-        </article>
-        <article className="user-dashboard__card">
-          <p className="user-dashboard__card-label">Available Credit</p>
-          <p className="user-dashboard__card-value">
-            {formatMoneyDisplay(metrics.availableCredit)}
-          </p>
+          <p className="user-dashboard__card-hint">Maximum PayLater spending power</p>
         </article>
       </section>
 
-      <section className="user-dashboard__section" aria-label="Activity summary">
-        <h2 className="user-dashboard__section-title">Activity</h2>
-        <div className="user-dashboard__activity">
-          <div className="user-dashboard__activity-item">
-            <p className="user-dashboard__activity-label">Purchase count</p>
-            <p className="user-dashboard__activity-value">{metrics.purchaseCount}</p>
-          </div>
-          <div className="user-dashboard__activity-item">
-            <p className="user-dashboard__activity-label">Total purchases</p>
-            <p className="user-dashboard__activity-value">
-              {formatMoneyDisplay(metrics.purchaseTotal)}
-            </p>
-          </div>
-          <div className="user-dashboard__activity-item">
-            <p className="user-dashboard__activity-label">Payback count</p>
-            <p className="user-dashboard__activity-value">{metrics.paybackCount}</p>
-          </div>
-          <div className="user-dashboard__activity-item">
-            <p className="user-dashboard__activity-label">Total paid</p>
-            <p className="user-dashboard__activity-value">
-              {formatMoneyDisplay(metrics.paybackTotal)}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="user-dashboard__section" aria-label="Recent transactions">
-        <h2 className="user-dashboard__section-title">Recent transactions</h2>
-        {!hasTransactions ? (
-          <p className="user-dashboard__empty">
-            No transactions yet. Purchases and paybacks will appear here.
-          </p>
-        ) : (
-          <>
-            <div className="user-dashboard__table-wrap admin-users__table-desktop">
-              <table className="user-dashboard__table">
-              <thead>
-                <tr>
-                  <th scope="col">ID</th>
-                  <th scope="col">Type</th>
-                  <th scope="col">Amount</th>
-                  <th scope="col">Commission</th>
-                  <th scope="col">Commission %</th>
-                  <th scope="col">Merchant</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recent.map((tx) => (
-                  <tr key={tx.id}>
-                    <td>{tx.id}</td>
-                    <td>
-                      <span
-                        className={
-                          tx.transaction_type === 'PURCHASE'
-                            ? 'user-dashboard__type user-dashboard__type--purchase'
-                            : 'user-dashboard__type user-dashboard__type--payback'
-                        }
-                      >
-                        {tx.transaction_type}
-                      </span>
-                    </td>
-                    <td>{formatMoneyDisplay(tx.amount)}</td>
-                    <td>{formatMoneyDisplay(tx.commission)}</td>
-                    <td>{tx.commission_percentage}</td>
-                    <td>
-                      {tx.merchant_id.Valid ? tx.merchant_id.Int32 : '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-            <div className="admin-users__mobile-cards">
-              {recent.map((tx) => (
-                <div key={tx.id} className="admin-users__card">
-                  <div className="admin-users__card-header">
-                    <span
-                      className={
-                        tx.transaction_type === 'PURCHASE'
-                          ? 'user-dashboard__type user-dashboard__type--purchase'
-                          : 'user-dashboard__type user-dashboard__type--payback'
-                      }
-                    >
-                      {tx.transaction_type}
-                    </span>
-                    <span className="admin-users__card-id">ID: {tx.id}</span>
-                  </div>
-                  <div className="admin-users__card-body">
-                    <div className="admin-users__card-row">
-                      <span className="admin-users__card-label">Amount</span>
-                      <span className="admin-users__card-value">{formatMoneyDisplay(tx.amount)}</span>
-                    </div>
-                    <div className="admin-users__card-row">
-                      <span className="admin-users__card-label">Commission</span>
-                      <span className="admin-users__card-value">{formatMoneyDisplay(tx.commission)}</span>
-                    </div>
-                    <div className="admin-users__card-row">
-                      <span className="admin-users__card-label">Merchant</span>
-                      <span className="admin-users__card-value">
-                        {tx.merchant_id.Valid ? tx.merchant_id.Int32 : '—'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </section>
-
-      <section className="user-dashboard__section" aria-label="Upcoming actions">
+      <section aria-label="Quick actions">
         <h2 className="user-dashboard__section-title">Quick actions</h2>
-        <div className="user-dashboard__actions">
+        <div className="user-dashboard__quick-actions">
           <Link
-            className="user-dashboard__action user-dashboard__action--enabled"
-            to="/user/transactions"
-          >
-            View Transactions
-          </Link>
-          <Link
-            className="user-dashboard__action user-dashboard__action--enabled"
+            className="user-dashboard__quick-action user-dashboard__quick-action--primary"
             to="/user/purchase"
           >
-            Make Purchase
+            <span className="user-dashboard__quick-action-label">Make purchase</span>
+            <span className="user-dashboard__quick-action-hint">Buy now, pay later</span>
           </Link>
           <Link
-            className="user-dashboard__action user-dashboard__action--enabled"
+            className="user-dashboard__quick-action user-dashboard__quick-action--primary"
             to="/user/payback"
           >
-            Pay Back
+            <span className="user-dashboard__quick-action-label">Pay back</span>
+            <span className="user-dashboard__quick-action-hint">Reduce your current due</span>
           </Link>
-          <Link
-            className="user-dashboard__action user-dashboard__action--enabled"
-            to="/user/profile"
-          >
-            Edit Profile
+          <Link className="user-dashboard__quick-action" to="/user/transactions">
+            <span className="user-dashboard__quick-action-label">View transactions</span>
+            <span className="user-dashboard__quick-action-hint">Full ledger history</span>
+          </Link>
+          <Link className="user-dashboard__quick-action" to="/user/profile">
+            <span className="user-dashboard__quick-action-label">Edit profile</span>
+            <span className="user-dashboard__quick-action-hint">Update your details</span>
           </Link>
         </div>
       </section>
+
+      <div className="user-dashboard__layout-split">
+        <section className="user-dashboard__section" aria-labelledby="user-activity-heading">
+          <h2 id="user-activity-heading" className="user-dashboard__section-title">
+            Activity summary
+          </h2>
+          <div className="user-dashboard__activity">
+            <div className="user-dashboard__activity-item">
+              <p className="user-dashboard__activity-label">Purchases</p>
+              <p className="user-dashboard__activity-value">{metrics.purchaseCount}</p>
+            </div>
+            <div className="user-dashboard__activity-item">
+              <p className="user-dashboard__activity-label">Total purchased</p>
+              <p className="user-dashboard__activity-value">
+                <CurrencyAmount value={metrics.purchaseTotal} />
+              </p>
+            </div>
+            <div className="user-dashboard__activity-item">
+              <p className="user-dashboard__activity-label">Paybacks</p>
+              <p className="user-dashboard__activity-value">{metrics.paybackCount}</p>
+            </div>
+            <div className="user-dashboard__activity-item">
+              <p className="user-dashboard__activity-label">Total repaid</p>
+              <p className="user-dashboard__activity-value">
+                <CurrencyAmount value={metrics.paybackTotal} />
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="user-dashboard__section" aria-labelledby="user-recent-heading">
+          <div className="user-dashboard__section-header">
+            <h2 id="user-recent-heading" className="user-dashboard__section-title">
+              Recent transactions
+            </h2>
+            {hasTransactions ? (
+              <Link className="user-dashboard__section-link" to="/user/transactions">
+                View all
+              </Link>
+            ) : null}
+          </div>
+          {!hasTransactions ? (
+            <div className="user-dashboard__empty-state">
+              <span className="user-dashboard__empty-icon" aria-hidden="true">
+                ∅
+              </span>
+              <p className="user-dashboard__empty-title">No transactions yet</p>
+              <p className="user-dashboard__empty">
+                Purchases and paybacks will appear here once you start using PayLater.
+              </p>
+              <Link
+                className="user-dashboard__quick-action user-dashboard__quick-action--primary user-dashboard__empty-action"
+                to="/user/purchase"
+              >
+                <span className="user-dashboard__quick-action-label">Make your first purchase</span>
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className="user-dashboard__table-wrap user-dashboard__tx-table-desktop">
+                <table className="user-dashboard__table">
+                  <thead>
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">Type</th>
+                      <th scope="col">Amount</th>
+                      <th scope="col">Commission</th>
+                      <th scope="col">Commission %</th>
+                      <th scope="col">Merchant</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recent.map((tx) => (
+                      <RecentTransactionRow key={tx.id} tx={tx} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="user-dashboard__tx-cards">
+                {recent.map((tx) => (
+                  <RecentTransactionCard key={tx.id} tx={tx} />
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      </div>
     </div>
   )
 }

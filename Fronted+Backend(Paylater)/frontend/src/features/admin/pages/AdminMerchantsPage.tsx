@@ -6,7 +6,6 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 import {
   getAdminMerchants,
@@ -21,15 +20,17 @@ import type {
   CreateAdminMerchantRequest,
   UpdateAdminMerchantRequest,
 } from '@/features/admin/types'
-import { isApiError } from '@/shared/api/errors'
-import { useAuth } from '@/shared/auth/useAuth'
+import { AdminModal } from '@/features/admin/components/AdminModal'
+import { createAdminApiErrorHandler } from '@/features/admin/lib/adminApiError'
 import { showToast } from '@/shared/ui/toastState'
-import '@/features/user/styles/user-dashboard.css'
+import { PageLoadError } from '@/shared/ui/PageLoadError'
+import { PageLoadingState } from '@/shared/ui/PageLoadingState'
+import '@/shared/styles/page-shell.css'
 import '@/features/admin/styles/admin-dashboard.css'
 
+const PHONE_PATTERN = /^[6-9]\d{9}$/
+
 export function AdminMerchantsPage(): ReactElement {
-  const navigate = useNavigate()
-  const { logout } = useAuth()
 
   // Data states
   const [merchants, setMerchants] = useState<AdminMerchant[]>([])
@@ -73,24 +74,7 @@ export function AdminMerchantsPage(): ReactElement {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deletingError, setDeletingError] = useState<string | null>(null)
 
-  const handleApiError = useCallback((error: unknown, fallback: string): string => {
-    if (isApiError(error)) {
-      if (error.status === 401) {
-        logout()
-        void navigate('/login', { replace: true })
-        return 'Session expired. Logging out...'
-      }
-      if (error.status === 403) {
-        setIsForbidden(true)
-        return 'Access denied. You do not have permissions for this resource.'
-      }
-      if (error.status === 0) {
-        return 'Unable to reach the server. Check your connection.'
-      }
-      return error.message || fallback
-    }
-    return fallback
-  }, [logout, navigate])
+  const handleApiError = useCallback(createAdminApiErrorHandler(setIsForbidden), [])
 
   const loadMerchants = useCallback(async (): Promise<void> => {
     setIsLoading(true)
@@ -147,6 +131,13 @@ export function AdminMerchantsPage(): ReactElement {
 
     if (!trimmedName || !trimmedEmail || !trimmedPassword) {
       setCreateError('Name, Email, and Password are required')
+      return
+    }
+
+    if (trimmedPhone && !PHONE_PATTERN.test(trimmedPhone)) {
+      setCreateError(
+        'Enter a valid 10-digit phone number starting with 6, 7, 8, or 9, or leave it blank',
+      )
       return
     }
 
@@ -295,35 +286,22 @@ export function AdminMerchantsPage(): ReactElement {
   }
 
   if (isLoading && merchants.length === 0 && fatalError === null) {
-    return (
-      <div className="user-dashboard__status" role="status" aria-live="polite">
-        <p className="user-dashboard__loading">Loading merchants list…</p>
-      </div>
-    )
+    return <PageLoadingState message="Loading merchants list…" live />
   }
 
   if (fatalError !== null && merchants.length === 0) {
     return (
-      <div className="user-dashboard__error" role="alert">
-        <h1 className="user-dashboard__error-title">
-          {isForbidden ? 'Access denied' : 'Unable to load merchants'}
-        </h1>
-        <p className="user-dashboard__error-message">{fatalError}</p>
-        {!isForbidden ? (
-          <button
-            type="button"
-            className="user-dashboard__retry"
-            onClick={() => setReloadKey((key) => key + 1)}
-          >
-            Retry
-          </button>
-        ) : null}
-      </div>
+      <PageLoadError
+        title={isForbidden ? 'Access denied' : 'Unable to load merchants'}
+        message={fatalError}
+        onRetry={() => setReloadKey((key) => key + 1)}
+        showRetry={!isForbidden}
+      />
     )
   }
 
   return (
-    <div className="admin-dashboard user-dashboard">
+    <div className="admin-dashboard user-dashboard pl-page">
       <header className="user-dashboard__welcome">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
           <div>
@@ -491,19 +469,11 @@ export function AdminMerchantsPage(): ReactElement {
 
       {/* Create Merchant Modal */}
       {isCreateOpen ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <form onSubmit={(e: FormEvent) => void handleCreateSubmit(e)}>
-              <header className="admin-modal-header">
-                <h2 className="admin-modal-title">Create Merchant Profile</h2>
-                <button
-                  type="button"
-                  className="admin-modal-close"
-                  onClick={() => setIsCreateOpen(false)}
-                >
-                  &times;
-                </button>
-              </header>
+        <AdminModal
+          title="Create Merchant Profile"
+          onClose={() => setIsCreateOpen(false)}
+          onSubmit={(e: FormEvent) => void handleCreateSubmit(e)}
+        >
               <div className="admin-modal-body">
                 {createError !== null ? (
                   <p className="admin-dashboard__card-error" style={{ margin: 0 }}>
@@ -561,7 +531,12 @@ export function AdminMerchantsPage(): ReactElement {
                     id="create-merchant-phone"
                     className="admin-form-input"
                     value={createPhone}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setCreatePhone(e.target.value)}
+                    inputMode="numeric"
+                    maxLength={10}
+                    pattern="[6-9][0-9]{9}"
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setCreatePhone(e.target.value.replace(/\D/g, '').slice(0, 10))
+                    }
                     disabled={isCreating}
                   />
                 </div>
@@ -601,25 +576,12 @@ export function AdminMerchantsPage(): ReactElement {
                   {isCreating ? 'Creating...' : 'Create Merchant'}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+        </AdminModal>
       ) : null}
 
       {/* View Merchant Details Modal */}
       {viewMerchant !== null ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <header className="admin-modal-header">
-              <h2 className="admin-modal-title">Merchant Details</h2>
-              <button
-                type="button"
-                className="admin-modal-close"
-                onClick={() => setViewMerchant(null)}
-              >
-                &times;
-              </button>
-            </header>
+        <AdminModal title="Merchant Details" onClose={() => setViewMerchant(null)}>
             <div className="admin-modal-body">
               <div className="admin-details-list">
                 <div className="admin-details-row">
@@ -654,25 +616,16 @@ export function AdminMerchantsPage(): ReactElement {
                 Close
               </button>
             </div>
-          </div>
-        </div>
+        </AdminModal>
       ) : null}
 
       {/* Edit Name/Phone Modal */}
       {editMerchant !== null ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <form onSubmit={(e: FormEvent) => void handleUpdateSubmit(e)}>
-              <header className="admin-modal-header">
-                <h2 className="admin-modal-title">Edit Merchant Profile</h2>
-                <button
-                  type="button"
-                  className="admin-modal-close"
-                  onClick={() => setEditMerchant(null)}
-                >
-                  &times;
-                </button>
-              </header>
+        <AdminModal
+          title="Edit Merchant Profile"
+          onClose={() => setEditMerchant(null)}
+          onSubmit={(e: FormEvent) => void handleUpdateSubmit(e)}
+        >
               <div className="admin-modal-body">
                 {updatingError !== null ? (
                   <p className="admin-dashboard__card-error" style={{ margin: 0 }}>
@@ -725,26 +678,16 @@ export function AdminMerchantsPage(): ReactElement {
                   {isUpdating ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+        </AdminModal>
       ) : null}
 
       {/* Edit Commission Modal */}
       {commissionMerchant !== null ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <form onSubmit={(e: FormEvent) => void handleCommissionSubmit(e)}>
-              <header className="admin-modal-header">
-                <h2 className="admin-modal-title">Update Commission Rate</h2>
-                <button
-                  type="button"
-                  className="admin-modal-close"
-                  onClick={() => setCommissionMerchant(null)}
-                >
-                  &times;
-                </button>
-              </header>
+        <AdminModal
+          title="Update Commission Rate"
+          onClose={() => setCommissionMerchant(null)}
+          onSubmit={(e: FormEvent) => void handleCommissionSubmit(e)}
+        >
               <div className="admin-modal-body">
                 {commissionError !== null ? (
                   <p className="admin-dashboard__card-error" style={{ margin: 0 }}>
@@ -787,27 +730,17 @@ export function AdminMerchantsPage(): ReactElement {
                   {isUpdatingCommission ? 'Saving...' : 'Update Commission'}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+        </AdminModal>
       ) : null}
 
       {/* Delete Confirmation Modal */}
       {deleteMerchant !== null ? (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
-            <header className="admin-modal-header">
-              <h2 className="admin-modal-title" style={{ color: 'var(--color-danger)' }}>
-                Delete Merchant
-              </h2>
-              <button
-                type="button"
-                className="admin-modal-close"
-                onClick={() => setDeleteMerchant(null)}
-              >
-                &times;
-              </button>
-            </header>
+        <AdminModal
+          title={
+            <span style={{ color: 'var(--color-danger)' }}>Delete Merchant</span>
+          }
+          onClose={() => setDeleteMerchant(null)}
+        >
             <div className="admin-modal-body">
               {deletingError !== null ? (
                 <p className="admin-dashboard__card-error" style={{ margin: 0 }}>
@@ -839,8 +772,7 @@ export function AdminMerchantsPage(): ReactElement {
                 {isDeleting ? 'Deleting...' : 'Delete Merchant'}
               </button>
             </div>
-          </div>
-        </div>
+        </AdminModal>
       ) : null}
     </div>
   )

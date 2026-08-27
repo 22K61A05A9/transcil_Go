@@ -1,20 +1,15 @@
 import { apiGet, apiPost, apiPut } from '@/shared/api/client'
+import type { MessageResponse } from '@/shared/api/dtos'
+import { assertMessageResponse } from '@/shared/api/response'
+import { GUEST_API_ENDPOINTS } from '@/shared/config/guestAccess'
 import type {
   AvailableMerchant,
   CreatePaybackRequest,
   CreatePurchaseRequest,
-  MessageResponse,
   UpdateUserNameRequest,
   UserProfile,
   UserTransaction,
 } from '@/features/user/types'
-
-function assertMessageResponse(data: MessageResponse, label: string): MessageResponse {
-  if (typeof data.message !== 'string' || data.message.trim() === '') {
-    throw new Error(`Unexpected ${label} response shape`)
-  }
-  return data
-}
 
 function assertUserProfile(data: UserProfile): UserProfile {
   if (
@@ -101,7 +96,7 @@ export async function getUserTransactions(
  */
 export async function getAvailableMerchants(): Promise<AvailableMerchant[]> {
   const response = await apiGet<AvailableMerchant[] | null>(
-    '/merchants/available',
+    GUEST_API_ENDPOINTS.merchantCatalog,
     { token: null },
   )
   return normalizeAvailableMerchants(response)

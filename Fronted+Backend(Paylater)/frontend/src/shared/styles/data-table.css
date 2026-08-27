@@ -1,0 +1,65 @@
+/* Responsive data table + mobile card list patterns */
+
+.admin-users__mobile-cards {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .admin-users__table-desktop {
+    display: none;
+  }
+
+  .admin-users__mobile-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .admin-users__card {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .admin-users__card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+    border-bottom: var(--border-width) solid var(--color-bg);
+    padding-bottom: var(--space-2);
+  }
+
+  .admin-users__card-title {
+    font-size: var(--text-md);
+    font-weight: var(--weight-semibold);
+  }
+
+  .admin-users__card-id {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .admin-users__card-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .admin-users__card-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--text-sm);
+  }
+
+  .admin-users__card-label {
+    color: var(--color-text-secondary);
+  }
+
+  .admin-users__card-value {
+    font-weight: var(--weight-medium);
+  }
+}

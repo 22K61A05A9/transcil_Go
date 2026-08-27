@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: paylater-viewer
+  namespace: paylater
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: paylater-readonly
+  namespace: paylater
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+
+  - apiGroups: [""]
+    resources:
+      - pods/log
+    verbs:
+      - get
+
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - replicasets
+    verbs:
+      - get
+      - list
+      - watch
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: paylater-viewer-binding
+  namespace: paylater
+subjects:
+  - kind: ServiceAccount
+    name: paylater-viewer
+    namespace: paylater
+roleRef:
+  kind: Role
+  name: paylater-readonly
+  apiGroup: rbac.authorization.k8s.io

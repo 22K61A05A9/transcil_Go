@@ -9,6 +9,7 @@ spec:
   replicas: 1
   strategy:
     type: Recreate
+
   selector:
     matchLabels:
       app: mysql
@@ -44,13 +45,22 @@ spec:
               mountPath: /docker-entrypoint-initdb.d/init.sql
               subPath: init.sql
 
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD"
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+
           readinessProbe:
             exec:
               command:
                 - sh
                 - -c
                 - mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD"
-            initialDelaySeconds: 20
             periodSeconds: 5
             timeoutSeconds: 5
             failureThreshold: 10
@@ -61,7 +71,6 @@ spec:
                 - sh
                 - -c
                 - mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD"
-            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 5

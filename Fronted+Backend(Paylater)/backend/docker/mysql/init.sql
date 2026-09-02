@@ -1,5 +1,8 @@
 -- Shared paylater schema bootstrap for Docker MySQL.
 -- Tables match each service's schema.sql (no FK across services).
+CREATE USER IF NOT EXISTS 'gouser'@'%' IDENTIFIED BY 'Go123';
+GRANT ALL PRIVILEGES ON paylater.* TO 'gouser'@'%';
+FLUSH PRIVILEGES;
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,

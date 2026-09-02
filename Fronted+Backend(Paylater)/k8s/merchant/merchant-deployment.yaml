@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: merchant
-          image: frontedbackendpaylater-merchant
+          image: haripriyanka99/paylater-merchant:v1
           imagePullPolicy: IfNotPresent
 
           ports:

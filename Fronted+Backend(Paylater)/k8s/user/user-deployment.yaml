@@ -21,7 +21,7 @@ spec:
       containers:
         - name: user
 
-          image: frontedbackendpaylater-user
+          image: haripriyanka99/paylater-user:v1
           imagePullPolicy: IfNotPresent
 
           ports:

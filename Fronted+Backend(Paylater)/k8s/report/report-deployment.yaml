@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: report
-          image: frontedbackendpaylater-report
+          image: haripriyanka99/paylater-report:v1
           imagePullPolicy: IfNotPresent
 
           ports:

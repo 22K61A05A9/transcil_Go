@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: transaction
-          image: frontedbackendpaylater-transaction
+          image: haripriyanka99/paylater-transaction:v1
           imagePullPolicy: IfNotPresent
 
           ports:

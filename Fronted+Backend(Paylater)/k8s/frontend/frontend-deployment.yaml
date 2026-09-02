@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: frontedbackendpaylater-frontend:v2
+          image: haripriyanka99/paylater-frontend:v2
           imagePullPolicy: IfNotPresent
 
           securityContext:

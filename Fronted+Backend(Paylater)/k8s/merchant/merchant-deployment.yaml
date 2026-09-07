@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: merchant
-          image: haripriyanka99/paylater-merchant:v1
+          image: haripriyanka99/paylater-merchant:v2
           imagePullPolicy: IfNotPresent
 
           ports:

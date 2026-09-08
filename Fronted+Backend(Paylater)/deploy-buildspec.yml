@@ -1,1 +1,92 @@
+version: 0.2
 
+env:
+  variables:
+    AWS_DEFAULT_REGION: "us-east-1"
+    ECR_REGISTRY: "465630415715.dkr.ecr.us-east-1.amazonaws.com"
+    K3S_INSTANCE_ID: "i-026572c393f77f8cf"
+
+phases:
+
+  install:
+    commands:
+      - echo "=== DEPLOY INSTALL PHASE ==="
+      - aws --version
+      - echo "Checking AWS Systems Manager..."
+      - aws ssm describe-instance-information --region "$AWS_DEFAULT_REGION"
+
+  pre_build:
+    commands:
+      - echo "=== DEPLOY PRE-BUILD PHASE ==="
+      - echo "Source version:"
+      - echo "$CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - echo "K3s server:"
+      - echo "$K3S_INSTANCE_ID"
+
+  build:
+    commands:
+      - echo "=== DEPLOY PHASE ==="
+
+      - echo "Sending deployment command to K3s server..."
+
+      - |
+        COMMAND_ID=$(aws ssm send-command \
+          --region "$AWS_DEFAULT_REGION" \
+          --instance-ids "$K3S_INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
+          --comment "PayLater CI/CD deployment" \
+          --parameters 'commands=[
+            "set -e",
+            "echo === K3s deployment started ===",
+            "aws --version",
+            "kubectl get nodes",
+            "aws ecr get-login-password --region us-east-1 | kubectl create secret docker-registry ecr-registry-secret --docker-server=465630415715.dkr.ecr.us-east-1.amazonaws.com --docker-username=AWS --docker-password=\"$(aws ecr get-login-password --region us-east-1)\" --namespace=paylater --dry-run=client -o yaml | kubectl apply -f -",
+            "kubectl -n paylater patch deployment user -p '\''{\"spec\":{\"template\":{\"spec\":{\"imagePullSecrets\":[{\"name\":\"ecr-registry-secret\"}]}}}}'\''",
+            "kubectl -n paylater patch deployment transaction -p '\''{\"spec\":{\"template\":{\"spec\":{\"imagePullSecrets\":[{\"name\":\"ecr-registry-secret\"}]}}}}'\''",
+            "kubectl -n paylater patch deployment merchant -p '\''{\"spec\":{\"template\":{\"spec\":{\"imagePullSecrets\":[{\"name\":\"ecr-registry-secret\"}]}}}}'\''",
+            "kubectl -n paylater patch deployment admin -p '\''{\"spec\":{\"template\":{\"spec\":{\"imagePullSecrets\":[{\"name\":\"ecr-registry-secret\"}]}}}}'\''",
+            "kubectl -n paylater patch deployment report -p '\''{\"spec\":{\"template\":{\"spec\":{\"imagePullSecrets\":[{\"name\":\"ecr-registry-secret\"}]}}}}'\''",
+            "kubectl -n paylater patch deployment gateway -p '\''{\"spec\":{\"template\":{\"spec\":{\"imagePullSecrets\":[{\"name\":\"ecr-registry-secret\"}]}}}}'\''",
+            "kubectl -n paylater patch deployment frontend -p '\''{\"spec\":{\"template\":{\"spec\":{\"imagePullSecrets\":[{\"name\":\"ecr-registry-secret\"}]}}}}'\''",
+            "kubectl -n paylater set image deployment/user user=465630415715.dkr.ecr.us-east-1.amazonaws.com/paylater-user:$CODEBUILD_RESOLVED_SOURCE_VERSION",
+            "kubectl -n paylater set image deployment/transaction transaction=465630415715.dkr.ecr.us-east-1.amazonaws.com/paylater-transaction:$CODEBUILD_RESOLVED_SOURCE_VERSION",
+            "kubectl -n paylater set image deployment/merchant merchant=465630415715.dkr.ecr.us-east-1.amazonaws.com/paylater-merchant:$CODEBUILD_RESOLVED_SOURCE_VERSION",
+            "kubectl -n paylater set image deployment/admin admin=465630415715.dkr.ecr.us-east-1.amazonaws.com/paylater-admin:$CODEBUILD_RESOLVED_SOURCE_VERSION",
+            "kubectl -n paylater set image deployment/report report=465630415715.dkr.ecr.us-east-1.amazonaws.com/paylater-report:$CODEBUILD_RESOLVED_SOURCE_VERSION",
+            "kubectl -n paylater set image deployment/gateway gateway=465630415715.dkr.ecr.us-east-1.amazonaws.com/paylater-gateway:$CODEBUILD_RESOLVED_SOURCE_VERSION",
+            "kubectl -n paylater set image deployment/frontend frontend=465630415715.dkr.ecr.us-east-1.amazonaws.com/paylater-frontend:$CODEBUILD_RESOLVED_SOURCE_VERSION",
+            "kubectl -n paylater rollout status deployment/user --timeout=300s",
+            "kubectl -n paylater rollout status deployment/transaction --timeout=300s",
+            "kubectl -n paylater rollout status deployment/merchant --timeout=300s",
+            "kubectl -n paylater rollout status deployment/admin --timeout=300s",
+            "kubectl -n paylater rollout status deployment/report --timeout=300s",
+            "kubectl -n paylater rollout status deployment/gateway --timeout=300s",
+            "kubectl -n paylater rollout status deployment/frontend --timeout=300s",
+            "kubectl -n paylater get pods -o wide",
+            "echo === PayLater deployment completed successfully ==="
+          ]' \
+          --output text \
+          --query 'Command.CommandId')
+
+        echo "SSM Command ID: $COMMAND_ID"
+
+        echo "Waiting for deployment command..."
+
+        aws ssm wait command-executed \
+          --region "$AWS_DEFAULT_REGION" \
+          --command-id "$COMMAND_ID" \
+          --instance-id "$K3S_INSTANCE_ID"
+
+        echo "Deployment command completed."
+
+        aws ssm get-command-invocation \
+          --region "$AWS_DEFAULT_REGION" \
+          --command-id "$COMMAND_ID" \
+          --instance-id "$K3S_INSTANCE_ID" \
+          --query '{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}' \
+          --output json
+
+  post_build:
+    commands:
+      - echo "=== DEPLOY POST-BUILD PHASE ==="
+      - echo "PayLater deployment finished."

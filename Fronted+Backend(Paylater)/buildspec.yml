@@ -1,13 +1,109 @@
 version: 0.2
 
+env:
+  variables:
+    AWS_DEFAULT_REGION: "us-east-1"
+    ECR_REGISTRY: "465630415715.dkr.ecr.us-east-1.amazonaws.com"
+
 phases:
-  build:
+
+  install:
     commands:
-      - echo "Starting PayLater CodeBuild"
-      - cd "Fronted+Backend(Paylater)"
-      - echo "Inside PayLater directory"
+      - echo "=== INSTALL PHASE ==="
+      - echo "Checking required tools..."
+      - aws --version
+      - docker --version
+      - echo "Install phase completed"
+
+  pre_build:
+    commands:
+      - echo "=== PRE-BUILD PHASE ==="
+      - echo "CodeBuild source directory:"
       - pwd
       - ls -la
+
+      - echo "Entering PayLater project..."
+      - cd "$CODEBUILD_SRC_DIR/Fronted+Backend(Paylater)"
+
+      - echo "PayLater project directory:"
+      - pwd
+
+      - echo "Validating PayLater project..."
+
       - test -f go.work
       - test -f docker-compose.yml
-      - echo "PayLater source validation successful"
+      - test -f docker-compose.prod.yml
+      - test -f buildspec.yml
+
+      - test -d backend
+      - test -d frontend
+      - test -d k8s
+
+      - test -f backend/services/user/Dockerfile
+      - test -f backend/services/transaction/Dockerfile
+      - test -f backend/services/merchant/Dockerfile
+      - test -f backend/services/admin/Dockerfile
+      - test -f backend/services/report/Dockerfile
+      - test -f backend/services/gateway/Dockerfile
+      - test -f frontend/Dockerfile
+
+      - echo "Project validation successful"
+
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+
+      - echo "ECR login successful"
+
+  build:
+    commands:
+      - echo "=== BUILD PHASE ==="
+      - cd "$CODEBUILD_SRC_DIR/Fronted+Backend(Paylater)"
+      - pwd
+
+      - echo "Building user service..."
+      - docker build -f backend/services/user/Dockerfile -t "$ECR_REGISTRY/paylater-user:$CODEBUILD_RESOLVED_SOURCE_VERSION" .
+
+      - echo "Building transaction service..."
+      - docker build -f backend/services/transaction/Dockerfile -t "$ECR_REGISTRY/paylater-transaction:$CODEBUILD_RESOLVED_SOURCE_VERSION" .
+
+      - echo "Building merchant service..."
+      - docker build -f backend/services/merchant/Dockerfile -t "$ECR_REGISTRY/paylater-merchant:$CODEBUILD_RESOLVED_SOURCE_VERSION" .
+
+      - echo "Building admin service..."
+      - docker build -f backend/services/admin/Dockerfile -t "$ECR_REGISTRY/paylater-admin:$CODEBUILD_RESOLVED_SOURCE_VERSION" .
+
+      - echo "Building report service..."
+      - docker build -f backend/services/report/Dockerfile -t "$ECR_REGISTRY/paylater-report:$CODEBUILD_RESOLVED_SOURCE_VERSION" .
+
+      - echo "Building gateway service..."
+      - docker build -f backend/services/gateway/Dockerfile -t "$ECR_REGISTRY/paylater-gateway:$CODEBUILD_RESOLVED_SOURCE_VERSION" .
+
+      - echo "Building frontend..."
+      - docker build -f frontend/Dockerfile -t "$ECR_REGISTRY/paylater-frontend:$CODEBUILD_RESOLVED_SOURCE_VERSION" frontend
+
+      - echo "All PayLater Docker images built successfully"
+
+  post_build:
+    commands:
+      - echo "=== POST-BUILD PHASE ==="
+      - cd "$CODEBUILD_SRC_DIR/Fronted+Backend(Paylater)"
+      - pwd
+
+      - echo "Pushing images to Amazon ECR..."
+
+      - docker push "$ECR_REGISTRY/paylater-user:$CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - docker push "$ECR_REGISTRY/paylater-transaction:$CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - docker push "$ECR_REGISTRY/paylater-merchant:$CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - docker push "$ECR_REGISTRY/paylater-admin:$CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - docker push "$ECR_REGISTRY/paylater-report:$CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - docker push "$ECR_REGISTRY/paylater-gateway:$CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - docker push "$ECR_REGISTRY/paylater-frontend:$CODEBUILD_RESOLVED_SOURCE_VERSION"
+
+      - echo "All images pushed successfully"
+      - echo "CI build and ECR push completed successfully"
+
+artifacts:
+  files:
+    - "Fronted+Backend(Paylater)/k8s/**/*"
+    - "Fronted+Backend(Paylater)/buildspec.yml"
+  discard-paths: no

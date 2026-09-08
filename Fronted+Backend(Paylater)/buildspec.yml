@@ -1,0 +1,12 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - echo "Starting PayLater CodeBuild"
+      - echo "Inside PayLater directory"
+      - pwd
+      - ls -la
+      - test -f go.work
+      - test -f docker-compose.yml
+      - echo "PayLater source validation successful"

@@ -106,4 +106,5 @@ artifacts:
   files:
     - "Fronted+Backend(Paylater)/k8s/**/*"
     - "Fronted+Backend(Paylater)/buildspec.yml"
+    - "Fronted+Backend(Paylater)/deploy-buildspec.yml"
   discard-paths: no

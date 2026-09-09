@@ -18,7 +18,6 @@ phases:
   pre_build:
     commands:
       - echo "=== DEPLOY PRE-BUILD PHASE ==="
-
       - echo "Current directory:"
       - pwd
 
@@ -88,7 +87,20 @@ phases:
           --dry-run=client \
           -o yaml | kubectl apply -f -
 
-        echo "Updating deployments..."
+        echo "Configuring ECR pull secret for deployments..."
+
+        for DEPLOYMENT in user transaction merchant admin report gateway frontend
+        do
+          echo "Patching deployment: \$DEPLOYMENT"
+
+          kubectl -n paylater patch deployment "\$DEPLOYMENT" \
+            --type='strategic' \
+            -p '{"spec":{"template":{"spec":{"imagePullSecrets":[{"name":"ecr-registry-secret"}]}}}}'
+        done
+
+        echo "ECR pull secret configured successfully."
+
+        echo "Updating deployment images..."
 
         kubectl -n paylater set image deployment/user \
           user="\$REGISTRY/paylater-user:\$TAG"
@@ -191,4 +203,5 @@ phases:
     commands:
       - echo "=== DEPLOY POST-BUILD PHASE ==="
       - echo "PayLater CD completed successfully."
-      - echo "Deployed image tag: $(cat "$CODEBUILD_SRC_DIR/image-tag.txt")"
+      - echo "Deployed image tag:"
+      - cat "$CODEBUILD_SRC_DIR/image-tag.txt"

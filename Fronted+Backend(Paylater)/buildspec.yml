@@ -18,6 +18,7 @@ phases:
   pre_build:
     commands:
       - echo "=== PRE-BUILD PHASE ==="
+
       - echo "CodeBuild source directory:"
       - pwd
       - ls -la
@@ -49,11 +50,15 @@ phases:
 
       - echo "Project validation successful"
 
+      # Generate image tag from the Git commit used by CodeBuild
+      - export IMAGE_TAG="$CODEBUILD_RESOLVED_SOURCE_VERSION"
+
       - echo "IMAGE_TAG=$IMAGE_TAG"
 
       - |
         if [ -z "$IMAGE_TAG" ]; then
           echo "ERROR: IMAGE_TAG is empty"
+          echo "CODEBUILD_RESOLVED_SOURCE_VERSION was not available"
           exit 1
         fi
 
@@ -67,6 +72,8 @@ phases:
       - echo "=== BUILD PHASE ==="
       - cd "$CODEBUILD_SRC_DIR/Fronted+Backend(Paylater)"
       - pwd
+
+      - echo "Using IMAGE_TAG=$IMAGE_TAG"
 
       - echo "Building user service..."
       - docker build -f backend/services/user/Dockerfile -t "$ECR_REGISTRY/paylater-user:$IMAGE_TAG" .
@@ -113,9 +120,10 @@ phases:
       - docker push "$ECR_REGISTRY/paylater-frontend:$IMAGE_TAG"
 
       - echo "All images pushed successfully"
-      - echo "$CODEBUILD_RESOLVED_SOURCE_VERSION" > image-tag.txt
-      - echo "Created image-tag.txt:"
+
+      - echo "Final image tag:"
       - cat image-tag.txt
+
       - echo "CI build and ECR push completed successfully"
 
 artifacts:

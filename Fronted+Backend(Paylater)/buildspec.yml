@@ -113,6 +113,9 @@ phases:
       - docker push "$ECR_REGISTRY/paylater-frontend:$IMAGE_TAG"
 
       - echo "All images pushed successfully"
+      - echo "$CODEBUILD_RESOLVED_SOURCE_VERSION" > image-tag.txt
+      - echo "Created image-tag.txt:"
+      - cat image-tag.txt
       - echo "CI build and ECR push completed successfully"
 
 artifacts:

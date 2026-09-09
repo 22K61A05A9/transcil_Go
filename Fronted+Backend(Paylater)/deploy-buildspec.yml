@@ -10,22 +10,28 @@ phases:
 
   install:
     commands:
-      - echo "=== DEPLOY INSTALL PHASE ==="
+      - 'echo "=== DEPLOY INSTALL PHASE ==="'
       - aws --version
-      - echo "Checking SSM instance..."
+      - 'echo "Checking SSM instance..."'
       - aws ssm describe-instance-information --region "$AWS_DEFAULT_REGION"
 
   pre_build:
     commands:
-      - echo "=== DEPLOY PRE-BUILD PHASE ==="
-      - echo "Current directory:"
+      - 'echo "=== DEPLOY PRE-BUILD PHASE ==="'
+      - 'echo "Current directory:"'
       - pwd
 
-      - echo "Available files:"
+      - 'echo "Available files:"'
       - ls -la
 
-      - echo "Checking image-tag.txt..."
-      - test -f "$CODEBUILD_SRC_DIR/image-tag.txt"
+      - 'echo "Checking image-tag.txt..."'
+
+      - |
+        if [ ! -f "$CODEBUILD_SRC_DIR/image-tag.txt" ]; then
+          echo "ERROR: image-tag.txt was not found"
+          echo "Build artifact was not passed correctly to Deploy stage."
+          exit 1
+        fi
 
       - IMAGE_TAG=$(tr -d '[:space:]' < "$CODEBUILD_SRC_DIR/image-tag.txt")
 
@@ -35,24 +41,25 @@ phases:
           exit 1
         fi
 
-      - echo "======================================"
-      - echo "Deployment image tag: $IMAGE_TAG"
-      - echo "K3s instance: $K3S_INSTANCE_ID"
-      - echo "======================================"
+      - 'echo "======================================"'
+      - 'echo "Deployment image tag: $IMAGE_TAG"'
+      - 'echo "K3s instance: $K3S_INSTANCE_ID"'
+      - 'echo "======================================"'
 
   build:
     commands:
-      - echo "=== DEPLOY PHASE ==="
+      - 'echo "=== DEPLOY PHASE ==="'
 
       - IMAGE_TAG=$(tr -d '[:space:]' < "$CODEBUILD_SRC_DIR/image-tag.txt")
 
-      - echo "Deploying IMAGE_TAG=$IMAGE_TAG"
+      - 'echo "Deploying IMAGE_TAG=$IMAGE_TAG"'
 
-      - echo "Creating deployment script..."
+      - 'echo "Creating deployment script..."'
 
       - |
         cat > /tmp/paylater-deploy.sh <<'SCRIPT'
         #!/bin/bash
+
         set -e
 
         echo "======================================"
@@ -66,7 +73,14 @@ phases:
         echo "Image tag: $TAG"
         echo "Registry: $REGISTRY"
 
-        echo "Checking K3s..."
+        echo "======================================"
+        echo "Checking required commands"
+        echo "======================================"
+
+        if ! command -v aws >/dev/null 2>&1; then
+          echo "ERROR: AWS CLI not found on K3s instance"
+          exit 1
+        fi
 
         if ! command -v k3s >/dev/null 2>&1; then
           echo "ERROR: k3s command not found"
@@ -75,16 +89,74 @@ phases:
 
         KUBECTL="k3s kubectl"
 
+        echo "AWS CLI:"
+        aws --version
+
         echo "K3s version:"
         k3s --version
 
-        echo "Checking Kubernetes nodes..."
+        echo "======================================"
+        echo "Checking Kubernetes nodes"
+        echo "======================================"
+
         $KUBECTL get nodes
 
-        echo "Checking paylater namespace..."
+        echo "======================================"
+        echo "Checking paylater namespace"
+        echo "======================================"
+
+        if ! $KUBECTL get namespace paylater >/dev/null 2>&1; then
+          echo "ERROR: paylater namespace does not exist"
+          exit 1
+        fi
+
         $KUBECTL get namespace paylater
 
-        echo "Creating/updating ECR pull secret..."
+        echo "======================================"
+        echo "Checking ECR access"
+        echo "======================================"
+
+        aws ecr describe-repositories \
+          --region "$REGION" \
+          --repository-names \
+            paylater-user \
+            paylater-transaction \
+            paylater-merchant \
+            paylater-admin \
+            paylater-report \
+            paylater-gateway \
+            paylater-frontend \
+          >/dev/null
+
+        echo "ECR repositories are accessible."
+
+        echo "======================================"
+        echo "Checking ECR image tags"
+        echo "======================================"
+
+        for REPOSITORY in \
+          paylater-user \
+          paylater-transaction \
+          paylater-merchant \
+          paylater-admin \
+          paylater-report \
+          paylater-gateway \
+          paylater-frontend
+        do
+          echo "Checking $REPOSITORY:$TAG"
+
+          aws ecr describe-images \
+            --region "$REGION" \
+            --repository-name "$REPOSITORY" \
+            --image-ids imageTag="$TAG" \
+            >/dev/null
+
+          echo "$REPOSITORY:$TAG exists."
+        done
+
+        echo "======================================"
+        echo "Creating/updating ECR pull secret"
+        echo "======================================"
 
         ECR_PASSWORD=$(aws ecr get-login-password --region "$REGION")
 
@@ -96,9 +168,11 @@ phases:
           --dry-run=client \
           -o yaml | $KUBECTL apply -f -
 
-        echo "ECR pull secret configured."
+        echo "ECR pull secret configured successfully."
 
-        echo "Configuring imagePullSecrets..."
+        echo "======================================"
+        echo "Configuring imagePullSecrets"
+        echo "======================================"
 
         for DEPLOYMENT in user transaction merchant admin report gateway frontend
         do
@@ -109,7 +183,9 @@ phases:
             -p '{"spec":{"template":{"spec":{"imagePullSecrets":[{"name":"ecr-registry-secret"}]}}}}'
         done
 
-        echo "Updating deployment images..."
+        echo "======================================"
+        echo "Updating deployment images"
+        echo "======================================"
 
         $KUBECTL -n paylater set image deployment/user \
           user="$REGISTRY/paylater-user:$TAG"
@@ -132,7 +208,11 @@ phases:
         $KUBECTL -n paylater set image deployment/frontend \
           frontend="$REGISTRY/paylater-frontend:$TAG"
 
-        echo "Waiting for rollouts..."
+        echo "All deployment images updated."
+
+        echo "======================================"
+        echo "Waiting for Kubernetes rollouts"
+        echo "======================================"
 
         $KUBECTL -n paylater rollout status deployment/user --timeout=300s
         $KUBECTL -n paylater rollout status deployment/transaction --timeout=300s
@@ -159,10 +239,18 @@ phases:
         echo "======================================"
         SCRIPT
 
-      - echo "Injecting image tag into deployment script..."
+      - 'echo "Injecting image tag into deployment script..."'
+
+      - |
+        if ! grep -q "__IMAGE_TAG__" /tmp/paylater-deploy.sh; then
+          echo "ERROR: IMAGE_TAG placeholder not found"
+          exit 1
+        fi
+
       - sed -i "s/__IMAGE_TAG__/$IMAGE_TAG/g" /tmp/paylater-deploy.sh
 
-      - echo "Encoding deployment script..."
+      - 'echo "Encoding deployment script..."'
+
       - SCRIPT_B64=$(base64 -w 0 /tmp/paylater-deploy.sh)
 
       - |
@@ -171,7 +259,7 @@ phases:
           exit 1
         fi
 
-      - echo "Sending deployment command to EC2 through SSM..."
+      - 'echo "Sending deployment command to EC2 through SSM..."'
 
       - |
         SSM_COMMAND="echo $SCRIPT_B64 | base64 -d > /tmp/paylater-deploy.sh && chmod +x /tmp/paylater-deploy.sh && /tmp/paylater-deploy.sh"
@@ -192,21 +280,53 @@ phases:
           exit 1
         fi
 
-        echo "Waiting for SSM deployment..."
+        echo "======================================"
+        echo "Waiting for SSM deployment"
+        echo "======================================"
 
-        aws ssm wait command-executed \
-          --region "$AWS_DEFAULT_REGION" \
-          --command-id "$COMMAND_ID" \
-          --instance-id "$K3S_INSTANCE_ID"
+        MAX_ATTEMPTS=360
+        ATTEMPT=0
 
-        STATUS=$(aws ssm get-command-invocation \
-          --region "$AWS_DEFAULT_REGION" \
-          --command-id "$COMMAND_ID" \
-          --instance-id "$K3S_INSTANCE_ID" \
-          --query "Status" \
-          --output text)
+        while true
+        do
+          STATUS=$(aws ssm get-command-invocation \
+            --region "$AWS_DEFAULT_REGION" \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$K3S_INSTANCE_ID" \
+            --query "Status" \
+            --output text)
 
-        echo "SSM Status: $STATUS"
+          echo "SSM Status: $STATUS"
+
+          case "$STATUS" in
+            Success)
+              echo "SSM deployment completed successfully."
+              break
+              ;;
+
+            Failed|Cancelled|TimedOut|Cancelling)
+              echo "ERROR: SSM deployment failed with status: $STATUS"
+              break
+              ;;
+
+            Pending|InProgress|Delayed)
+              ATTEMPT=$((ATTEMPT + 1))
+
+              if [ "$ATTEMPT" -ge "$MAX_ATTEMPTS" ]; then
+                echo "ERROR: SSM deployment timed out while waiting."
+                STATUS="TimedOut"
+                break
+              fi
+
+              sleep 5
+              ;;
+
+            *)
+              echo "ERROR: Unknown SSM status: $STATUS"
+              break
+              ;;
+          esac
+        done
 
         echo "======================================"
         echo "SSM OUTPUT"
@@ -224,11 +344,11 @@ phases:
           exit 1
         fi
 
-      - echo "PayLater deployment successful."
+      - 'echo "PayLater deployment successful."'
 
   post_build:
     commands:
-      - echo "=== DEPLOY POST-BUILD PHASE ==="
-      - echo "PayLater CD completed successfully."
-      - echo "Deployed image tag:"
+      - 'echo "=== DEPLOY POST-BUILD PHASE ==="'
+      - 'echo "PayLater CD completed successfully."'
+      - 'echo "Deployed image tag:"'
       - cat "$CODEBUILD_SRC_DIR/image-tag.txt"

@@ -17,11 +17,13 @@ phases:
   pre_build:
     commands:
       - echo "=== DEPLOY PRE-BUILD PHASE ==="
-      - echo "Source version: $CODEBUILD_RESOLVED_SOURCE_VERSION"
-      - echo "K3s instance: $K3S_INSTANCE_ID"
+      - echo "Source version"
+      - echo "$CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - echo "K3s instance"
+      - echo "$K3S_INSTANCE_ID"
       - |
         if [ -z "$CODEBUILD_RESOLVED_SOURCE_VERSION" ]; then
-          echo "ERROR: source version is empty"
+          echo "ERROR source version is empty"
           exit 1
         fi
 
@@ -30,6 +32,7 @@ phases:
       - echo "=== DEPLOY PHASE ==="
       - |
         cat > /tmp/deploy.sh <<'SCRIPT'
+        #!/bin/bash
         set -e
 
         echo "=== PayLater K3s deployment started ==="
@@ -38,13 +41,15 @@ phases:
         REGISTRY="465630415715.dkr.ecr.us-east-1.amazonaws.com"
         TAG="__IMAGE_TAG__"
 
-        echo "Image tag: $TAG"
+        echo "Image tag"
+        echo "$TAG"
 
-        echo "Checking Kubernetes..."
+        echo "Checking Kubernetes"
         kubectl get nodes
         kubectl get namespace paylater
 
-        echo "Creating ECR pull secret..."
+        echo "Creating ECR pull secret"
+
         ECR_PASSWORD=$(aws ecr get-login-password --region "$REGION")
 
         kubectl create secret docker-registry ecr-registry-secret \
@@ -55,50 +60,87 @@ phases:
           --dry-run=client \
           -o yaml | kubectl apply -f -
 
-        echo "Updating deployments..."
+        echo "Updating user deployment"
 
         kubectl -n paylater set image deployment/user \
           user="$REGISTRY/paylater-user:$TAG"
 
+        echo "Updating transaction deployment"
+
         kubectl -n paylater set image deployment/transaction \
           transaction="$REGISTRY/paylater-transaction:$TAG"
+
+        echo "Updating merchant deployment"
 
         kubectl -n paylater set image deployment/merchant \
           merchant="$REGISTRY/paylater-merchant:$TAG"
 
+        echo "Updating admin deployment"
+
         kubectl -n paylater set image deployment/admin \
           admin="$REGISTRY/paylater-admin:$TAG"
+
+        echo "Updating report deployment"
 
         kubectl -n paylater set image deployment/report \
           report="$REGISTRY/paylater-report:$TAG"
 
+        echo "Updating gateway deployment"
+
         kubectl -n paylater set image deployment/gateway \
           gateway="$REGISTRY/paylater-gateway:$TAG"
+
+        echo "Updating frontend deployment"
 
         kubectl -n paylater set image deployment/frontend \
           frontend="$REGISTRY/paylater-frontend:$TAG"
 
-        echo "Waiting for rollouts..."
+        echo "Waiting for user rollout"
 
         kubectl -n paylater rollout status deployment/user --timeout=300s
+
+        echo "Waiting for transaction rollout"
+
         kubectl -n paylater rollout status deployment/transaction --timeout=300s
+
+        echo "Waiting for merchant rollout"
+
         kubectl -n paylater rollout status deployment/merchant --timeout=300s
+
+        echo "Waiting for admin rollout"
+
         kubectl -n paylater rollout status deployment/admin --timeout=300s
+
+        echo "Waiting for report rollout"
+
         kubectl -n paylater rollout status deployment/report --timeout=300s
+
+        echo "Waiting for gateway rollout"
+
         kubectl -n paylater rollout status deployment/gateway --timeout=300s
+
+        echo "Waiting for frontend rollout"
+
         kubectl -n paylater rollout status deployment/frontend --timeout=300s
 
-        echo "=== Final pod status ==="
+        echo "Final pod status"
+
         kubectl -n paylater get pods -o wide
+
+        echo "Final deployment status"
+
+        kubectl -n paylater get deployments
 
         echo "=== PayLater deployment completed successfully ==="
         SCRIPT
 
         sed -i "s/__IMAGE_TAG__/$CODEBUILD_RESOLVED_SOURCE_VERSION/g" /tmp/deploy.sh
 
-        echo "Creating SSM command..."
+        echo "Deployment script created"
 
         SCRIPT_B64=$(base64 -w 0 /tmp/deploy.sh)
+
+        echo "Sending deployment command to K3s server"
 
         SSM_COMMAND="echo $SCRIPT_B64 | base64 -d > /tmp/paylater-deploy.sh && chmod +x /tmp/paylater-deploy.sh && /tmp/paylater-deploy.sh"
 
@@ -111,28 +153,63 @@ phases:
           --query "Command.CommandId" \
           --output text)
 
-        echo "SSM Command ID: $COMMAND_ID"
+        echo "SSM Command ID"
+        echo "$COMMAND_ID"
 
         if [ -z "$COMMAND_ID" ] || [ "$COMMAND_ID" = "None" ]; then
-          echo "ERROR: SSM command was not created"
+          echo "ERROR SSM command was not created"
           exit 1
         fi
 
-        echo "Waiting for deployment..."
+        echo "Waiting for SSM deployment command"
 
-        aws ssm wait command-executed \
-          --region "$AWS_DEFAULT_REGION" \
-          --command-id "$COMMAND_ID" \
-          --instance-id "$K3S_INSTANCE_ID"
+        for i in $(seq 1 60); do
 
-        STATUS=$(aws ssm get-command-invocation \
+          STATUS=$(aws ssm get-command-invocation \
+            --region "$AWS_DEFAULT_REGION" \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$K3S_INSTANCE_ID" \
+            --query "Status" \
+            --output text 2>/dev/null || echo "Pending")
+
+          echo "SSM status"
+          echo "$STATUS"
+
+          if [ "$STATUS" = "Success" ]; then
+            break
+          fi
+
+          if [ "$STATUS" = "Failed" ] || \
+             [ "$STATUS" = "Cancelled" ] || \
+             [ "$STATUS" = "TimedOut" ] || \
+             [ "$STATUS" = "Cancelling" ]; then
+
+            echo "SSM deployment failed"
+
+            aws ssm get-command-invocation \
+              --region "$AWS_DEFAULT_REGION" \
+              --command-id "$COMMAND_ID" \
+              --instance-id "$K3S_INSTANCE_ID" \
+              --query "{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}" \
+              --output json
+
+            exit 1
+          fi
+
+          sleep 10
+        done
+
+        FINAL_STATUS=$(aws ssm get-command-invocation \
           --region "$AWS_DEFAULT_REGION" \
           --command-id "$COMMAND_ID" \
           --instance-id "$K3S_INSTANCE_ID" \
           --query "Status" \
           --output text)
 
-        echo "SSM Status: $STATUS"
+        echo "Final SSM status"
+        echo "$FINAL_STATUS"
+
+        echo "Deployment output"
 
         aws ssm get-command-invocation \
           --region "$AWS_DEFAULT_REGION" \
@@ -141,15 +218,16 @@ phases:
           --query "{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}" \
           --output json
 
-        if [ "$STATUS" != "Success" ]; then
-          echo "ERROR: PayLater Kubernetes deployment failed"
+        if [ "$FINAL_STATUS" != "Success" ]; then
+          echo "ERROR PayLater Kubernetes deployment failed"
           exit 1
         fi
 
-        echo "PayLater deployment successful."
+        echo "PayLater deployment successful"
 
   post_build:
     commands:
       - echo "=== DEPLOY POST-BUILD PHASE ==="
-      - echo "PayLater CD completed."
-      - echo "Deployed version: $CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - echo "PayLater CD completed"
+      - echo "Deployed version"
+      - echo "$CODEBUILD_RESOLVED_SOURCE_VERSION"

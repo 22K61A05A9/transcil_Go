@@ -49,20 +49,13 @@ phases:
 
       - echo "Project validation successful"
 
-      - echo "Creating image tag..."
+      - echo "IMAGE_TAG=$IMAGE_TAG"
 
       - |
-        if [ -n "$CODEBUILD_RESOLVED_SOURCE_VERSION" ]; then
-          IMAGE_TAG="$CODEBUILD_RESOLVED_SOURCE_VERSION"
-        else
-          IMAGE_TAG="build-$CODEBUILD_BUILD_NUMBER"
+        if [ -z "$IMAGE_TAG" ]; then
+          echo "ERROR: IMAGE_TAG is empty"
+          exit 1
         fi
-
-        echo "$IMAGE_TAG" > "$CODEBUILD_SRC_DIR/image-tag.txt"
-
-        echo "======================================"
-        echo "IMAGE TAG: $IMAGE_TAG"
-        echo "======================================"
 
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
@@ -73,11 +66,7 @@ phases:
     commands:
       - echo "=== BUILD PHASE ==="
       - cd "$CODEBUILD_SRC_DIR/Fronted+Backend(Paylater)"
-
-      - IMAGE_TAG=$(cat "$CODEBUILD_SRC_DIR/image-tag.txt")
-
-      - echo "Using image tag:"
-      - echo "$IMAGE_TAG"
+      - pwd
 
       - echo "Building user service..."
       - docker build -f backend/services/user/Dockerfile -t "$ECR_REGISTRY/paylater-user:$IMAGE_TAG" .
@@ -102,15 +91,18 @@ phases:
 
       - echo "All PayLater Docker images built successfully"
 
+      - echo "Creating image-tag.txt..."
+      - echo "$IMAGE_TAG" > image-tag.txt
+
+      - echo "Image tag:"
+      - cat image-tag.txt
+
   post_build:
     commands:
       - echo "=== POST-BUILD PHASE ==="
       - cd "$CODEBUILD_SRC_DIR/Fronted+Backend(Paylater)"
 
-      - IMAGE_TAG=$(cat "$CODEBUILD_SRC_DIR/image-tag.txt")
-
       - echo "Pushing images to Amazon ECR..."
-      - echo "Image tag: $IMAGE_TAG"
 
       - docker push "$ECR_REGISTRY/paylater-user:$IMAGE_TAG"
       - docker push "$ECR_REGISTRY/paylater-transaction:$IMAGE_TAG"
@@ -124,9 +116,10 @@ phases:
       - echo "CI build and ECR push completed successfully"
 
 artifacts:
+  base-directory: "Fronted+Backend(Paylater)"
   files:
+    - "k8s/**/*"
+    - "buildspec.yml"
+    - "deploy-buildspec.yml"
     - "image-tag.txt"
-    - "Fronted+Backend(Paylater)/k8s/**/*"
-    - "Fronted+Backend(Paylater)/buildspec.yml"
-    - "Fronted+Backend(Paylater)/deploy-buildspec.yml"
   discard-paths: no

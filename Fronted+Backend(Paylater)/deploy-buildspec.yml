@@ -20,21 +20,19 @@ phases:
       - echo "=== DEPLOY PRE-BUILD PHASE ==="
       - echo "Current directory:"
       - pwd
-
       - echo "Available files:"
       - ls -la
-
       - echo "Searching for image-tag.txt..."
       - find "$CODEBUILD_SRC_DIR" -name "image-tag.txt" -type f -print
 
       - |
         if [ ! -f "$CODEBUILD_SRC_DIR/image-tag.txt" ]; then
           echo "ERROR: image-tag.txt was not found"
-          echo "The Deploy stage must receive the Build output artifact."
           exit 1
         fi
 
       - IMAGE_TAG=$(cat "$CODEBUILD_SRC_DIR/image-tag.txt")
+      - echo "Deployment image tag: $IMAGE_TAG"
 
       - |
         if [ -z "$IMAGE_TAG" ]; then
@@ -42,86 +40,80 @@ phases:
           exit 1
         fi
 
-      - echo "======================================"
-      - echo "Deployment image tag: $IMAGE_TAG"
       - echo "K3s instance: $K3S_INSTANCE_ID"
-      - echo "======================================"
 
   build:
     commands:
       - echo "=== DEPLOY PHASE ==="
-
       - IMAGE_TAG=$(cat "$CODEBUILD_SRC_DIR/image-tag.txt")
+      - echo "Deploying tag: $IMAGE_TAG"
 
       - |
-        cat > /tmp/deploy.sh <<SCRIPT
+        cat > /tmp/paylater-deploy.sh <<'DEPLOY_SCRIPT'
         #!/bin/bash
         set -e
 
-        echo "=== PayLater K3s deployment started ==="
-
-        REGION="$AWS_DEFAULT_REGION"
-        REGISTRY="$ECR_REGISTRY"
-        TAG="$IMAGE_TAG"
+        REGION="us-east-1"
+        REGISTRY="465630415715.dkr.ecr.us-east-1.amazonaws.com"
+        TAG="__IMAGE_TAG__"
 
         echo "======================================"
-        echo "Image tag: \$TAG"
-        echo "Registry: \$REGISTRY"
+        echo "PayLater K3s deployment started"
+        echo "Image tag: $TAG"
+        echo "Registry: $REGISTRY"
         echo "======================================"
 
         echo "Checking Kubernetes..."
-
         kubectl get nodes
-
         kubectl get namespace paylater
 
         echo "Creating ECR pull secret..."
 
-        ECR_PASSWORD=\$(aws ecr get-login-password --region "\$REGION")
+        ECR_PASSWORD=$(aws ecr get-login-password --region "$REGION")
 
         kubectl create secret docker-registry ecr-registry-secret \
-          --docker-server="\$REGISTRY" \
+          --docker-server="$REGISTRY" \
           --docker-username=AWS \
-          --docker-password="\$ECR_PASSWORD" \
+          --docker-password="$ECR_PASSWORD" \
           --namespace=paylater \
           --dry-run=client \
           -o yaml | kubectl apply -f -
 
-        echo "Configuring ECR pull secret for deployments..."
+        echo "Configuring ECR pull secret..."
 
         for DEPLOYMENT in user transaction merchant admin report gateway frontend
         do
-          echo "Patching deployment: \$DEPLOYMENT"
+          echo "Patching deployment: $DEPLOYMENT"
 
-          kubectl -n paylater patch deployment "\$DEPLOYMENT" \
+          kubectl -n paylater patch deployment "$DEPLOYMENT" \
             --type='strategic' \
             -p '{"spec":{"template":{"spec":{"imagePullSecrets":[{"name":"ecr-registry-secret"}]}}}}'
         done
 
-        echo "ECR pull secret configured successfully."
+        echo "ECR pull secret configured."
 
         echo "Updating deployment images..."
 
         kubectl -n paylater set image deployment/user \
-          user="\$REGISTRY/paylater-user:\$TAG"
+          user="$REGISTRY/paylater-user:$TAG"
 
         kubectl -n paylater set image deployment/transaction \
-          transaction="\$REGISTRY/paylater-transaction:\$TAG"
+          transaction="$REGISTRY/paylater-transaction:$TAG"
 
         kubectl -n paylater set image deployment/merchant \
-          merchant="\$REGISTRY/paylater-merchant:\$TAG"
+          merchant="$REGISTRY/paylater-merchant:$TAG"
 
         kubectl -n paylater set image deployment/admin \
-          admin="\$REGISTRY/paylater-admin:\$TAG"
+          admin="$REGISTRY/paylater-admin:$TAG"
 
         kubectl -n paylater set image deployment/report \
-          report="\$REGISTRY/paylater-report:\$TAG"
+          report="$REGISTRY/paylater-report:$TAG"
 
         kubectl -n paylater set image deployment/gateway \
-          gateway="\$REGISTRY/paylater-gateway:\$TAG"
+          gateway="$REGISTRY/paylater-gateway:$TAG"
 
         kubectl -n paylater set image deployment/frontend \
-          frontend="\$REGISTRY/paylater-frontend:\$TAG"
+          frontend="$REGISTRY/paylater-frontend:$TAG"
 
         echo "Waiting for rollouts..."
 
@@ -134,29 +126,27 @@ phases:
         kubectl -n paylater rollout status deployment/frontend --timeout=300s
 
         echo "=== FINAL POD STATUS ==="
-
         kubectl -n paylater get pods -o wide
 
         echo "=== DEPLOYMENT STATUS ==="
-
         kubectl -n paylater get deployments
 
         echo "=== PayLater deployment completed successfully ==="
-        SCRIPT
+        DEPLOY_SCRIPT
 
-      - echo "Creating SSM command..."
+      - sed -i "s/__IMAGE_TAG__/$IMAGE_TAG/g" /tmp/paylater-deploy.sh
+      - chmod +x /tmp/paylater-deploy.sh
 
-      - SCRIPT_B64=$(base64 -w 0 /tmp/deploy.sh)
+      - echo "Encoding deployment script..."
+      - SCRIPT_B64=$(base64 -w 0 /tmp/paylater-deploy.sh)
 
       - |
-        SSM_COMMAND="echo $SCRIPT_B64 | base64 -d > /tmp/paylater-deploy.sh && chmod +x /tmp/paylater-deploy.sh && /tmp/paylater-deploy.sh"
-
         COMMAND_ID=$(aws ssm send-command \
           --region "$AWS_DEFAULT_REGION" \
           --instance-ids "$K3S_INSTANCE_ID" \
           --document-name "AWS-RunShellScript" \
           --comment "PayLater CI/CD deployment" \
-          --parameters "commands=$SSM_COMMAND" \
+          --parameters "commands=echo $SCRIPT_B64 | base64 -d > /tmp/paylater-deploy.sh && chmod +x /tmp/paylater-deploy.sh && /tmp/paylater-deploy.sh" \
           --query "Command.CommandId" \
           --output text)
 
